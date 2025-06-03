@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="CENTER" prefHeight="668.0" prefWidth="1041.0" spacing="10" style="-fx-background-color: #E1EBEE;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.demo.supereventbookingsystem.controller.CartController">
+    <padding>
+        <Insets bottom="20" left="20" right="20" top="20" />
+    </padding>
+    <Label fx:id="cartLabel" style="-fx-translate-y: 0;" text="Your Cart" textFill="#011f5b">
+        <font>
+            <Font name="System Bold" size="36.0" />
+        </font>
+    </Label>
+    <Label text="Review your selected events" />
+    <Separator prefWidth="200.0" />
+    <TableView fx:id="cartTable" prefHeight="400.0" prefWidth="1000.0">
+        <columns>
+            <TableColumn fx:id="titleColumn" prefWidth="200" text="Title" />
+            <TableColumn fx:id="venueColumn" prefWidth="150" text="Venue" />
+            <TableColumn fx:id="dayColumn" prefWidth="100" text="Day" />
+            <TableColumn fx:id="quantityColumn" prefWidth="150" text="Quantity" />
+            <TableColumn fx:id="totalPriceColumn" prefWidth="150" text="Total Price" />
+        </columns>
+    </TableView>
+    <Button onAction="#handleBack" prefHeight="35.0" prefWidth="200.0" style="-fx-background-color: #3CB371; -fx-font-weight: bold;" text="Back to Dashboard" textFill="WHITE" />
+</VBox>
