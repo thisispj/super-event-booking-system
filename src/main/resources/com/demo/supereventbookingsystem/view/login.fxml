@@ -10,13 +10,13 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="462.0" prefWidth="400.0" spacing="10" style="-fx-background-color: #E1EBEE;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.demo.supereventbookingsystem.controller.LoginController">
+<VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="462.0" prefWidth="400.0" spacing="10" style="-fx-background-color: #E1EBEE;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.demo.supereventbookingsystem.controller.LoginController" stylesheets="@style.css">
     <padding>
         <Insets bottom="20" left="20" right="20" top="20" />
     </padding>
-    <Label layoutX="-30.0" prefHeight="29.0" prefWidth="214.0" style="-fx-translate-y: -10;" text="Super Event Booking" textFill="#011f5b">
+    <Label layoutX="-30.0" prefHeight="44.0" prefWidth="279.0" style="-fx-translate-y: -10;" text="Super Event Booking" textFill="#011f5b">
       <font>
-         <Font name="System Bold Italic" size="24.0" />
+         <Font name="System Bold Italic" size="32.0" />
       </font>
       <opaqueInsets>
          <Insets />

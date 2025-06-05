@@ -17,7 +17,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.util.Duration;
 import java.net.URL;
 import java.sql.SQLException;
@@ -58,7 +57,7 @@ public class DashboardController implements Initializable {
             System.err.println("eventTable is null! FXML binding failed.");
         }
         try {
-            DatabaseManager.getInstance().loadEventsFromFile("events.dat");
+            DatabaseManager.getInstance().loadEventsFromFile("src/main/resources/com/demo/supereventbookingsystem/events.dat");
         } catch (SQLException e) {
             System.err.println("Error loading events from file: " + e.getMessage());
             e.printStackTrace();
@@ -102,7 +101,7 @@ public class DashboardController implements Initializable {
                     if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                         setText(null);
                     } else {
-                        Event event = (Event) getTableRow().getItem();
+                        Event event = getTableRow().getItem();
                         setText(String.valueOf(event.getEventId()));
                         setTextFill(Color.BLACK);
                         System.out.println("Event ID cell: " + event.getEventId());
@@ -117,7 +116,7 @@ public class DashboardController implements Initializable {
                     if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                         setText(null);
                     } else {
-                        Event event = (Event) getTableRow().getItem();
+                        Event event = getTableRow().getItem();
                         setText(event.getTitle());
                         setTextFill(Color.BLACK);
                         System.out.println("Title cell: " + event.getTitle());
@@ -132,7 +131,7 @@ public class DashboardController implements Initializable {
                     if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                         setText(null);
                     } else {
-                        Event event = (Event) getTableRow().getItem();
+                        Event event = getTableRow().getItem();
                         setText(event.getVenue());
                         setTextFill(Color.BLACK);
                         System.out.println("Venue cell: " + event.getVenue());
@@ -147,7 +146,7 @@ public class DashboardController implements Initializable {
                     if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                         setText(null);
                     } else {
-                        Event event = (Event) getTableRow().getItem();
+                        Event event = getTableRow().getItem();
                         setText(event.getDay());
                         setTextFill(Color.BLACK);
                         System.out.println("Day cell: " + event.getDay());
@@ -162,7 +161,7 @@ public class DashboardController implements Initializable {
                     if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                         setText(null);
                     } else {
-                        Event event = (Event) getTableRow().getItem();
+                        Event event = getTableRow().getItem();
                         setText(String.format("%.2f", event.getPrice()));
                         setTextFill(Color.BLACK);
                         System.out.println("Price cell: " + event.getPrice());
@@ -177,7 +176,7 @@ public class DashboardController implements Initializable {
                     if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                         setText(null);
                     } else {
-                        Event event = (Event) getTableRow().getItem();
+                        Event event = getTableRow().getItem();
                         setText(String.valueOf(event.getAvailableTickets()));
                         setTextFill(Color.BLACK);
                         System.out.println("Available cell: " + event.getAvailableTickets());
@@ -232,7 +231,20 @@ public class DashboardController implements Initializable {
                 return;
             }
 
-            DatabaseManager.getInstance().addToCart(currentUser.getUsername(), selectedEvent, quantity);
+            Cart cart = DatabaseManager.getInstance().getCartItems(currentUser.getUsername());
+            boolean eventExists = cart.getItems().containsKey(selectedEvent.getEventId());
+            if (eventExists) {
+                int newQuantity = cart.getItems().get(selectedEvent.getEventId()) + quantity;
+                if (newQuantity <= selectedEvent.getAvailableTickets()) {
+                    updateCartItemQuantity(currentUser.getUsername(), selectedEvent.getEventId(), newQuantity);
+                } else {
+                    showTemporaryError("Not enough tickets available for the updated quantity.");
+                    return;
+                }
+            } else {
+                DatabaseManager.getInstance().addToCart(currentUser.getUsername(), selectedEvent, quantity);
+            }
+
             quantityField.clear();
             updateCartCount();
         } catch (NumberFormatException e) {
@@ -271,7 +283,7 @@ public class DashboardController implements Initializable {
         if (currentUser != null && statusLabel != null) {
             try {
                 Cart cart = DatabaseManager.getInstance().getCartItems(currentUser.getUsername());
-                statusLabel.setText("Items in Cart: " + cart.getItems().size());
+                statusLabel.setText("Items in Cart: " + cart.getItemCount());
             } catch (SQLException e) {
                 statusLabel.setText("Items in Cart: 0");
                 System.err.println("Error updating cart count: " + e.getMessage());
@@ -282,26 +294,35 @@ public class DashboardController implements Initializable {
 
     private void showTemporaryError(String errorMessage) {
         if (statusLabel != null) {
-            // Set error message and color
             statusLabel.setText(errorMessage);
-            statusLabel.setTextFill(Color.web("#a80000")); // Set to red
+            statusLabel.setTextFill(Color.web("#a80000"));
 
-            // Create shaking effect using TranslateTransition
             TranslateTransition shake = new TranslateTransition(Duration.millis(50), statusLabel);
-            shake.setByX(5); // Move 5 pixels to the right
-            shake.setCycleCount(6); // Repeat 6 times (3 full shakes)
-            shake.setAutoReverse(true); // Reverse direction each cycle
-
-            // Play the shaking effect
+            shake.setByX(5);
+            shake.setCycleCount(6);
+            shake.setAutoReverse(true);
             shake.play();
 
-            // Set up the 3-second timer to revert text and color
             PauseTransition pause = new PauseTransition(Duration.seconds(5));
             pause.setOnFinished(e -> {
-                updateCartCount(); // Revert text to cart count
-                statusLabel.setTextFill(Color.web("#000000")); // Revert to black
+                updateCartCount();
+                statusLabel.setTextFill(Color.web("#000000"));
             });
             pause.play();
+        }
+    }
+
+    private void updateCartItemQuantity(String username, int eventId, int newQuantity) throws SQLException {
+        String sql = "UPDATE cart SET quantity = ?, total_price = ? WHERE username = ? AND event_id = ?";
+        try (var pstmt = DatabaseManager.getInstance().getConnection().prepareStatement(sql)) {
+            Event event = DatabaseManager.getInstance().getEvent(eventId);
+            if (event != null) {
+                pstmt.setInt(1, newQuantity);
+                pstmt.setDouble(2, event.getPrice() * newQuantity);
+                pstmt.setString(3, username);
+                pstmt.setInt(4, eventId);
+                pstmt.executeUpdate();
+            }
         }
     }
 }

@@ -8,8 +8,6 @@ import com.demo.supereventbookingsystem.model.Cart;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -105,7 +103,6 @@ public class DatabaseManager {
             pstmt.setInt(6, event.getTotalTickets());
             pstmt.executeUpdate();
 
-            // Retrieve the generated event_id
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     event.setEventId(generatedKeys.getInt(1));
@@ -135,7 +132,7 @@ public class DatabaseManager {
         return events;
     }
 
-    private Event getEvent(int eventId) throws SQLException {
+    public Event getEvent(int eventId) throws SQLException {
         String sql = "SELECT * FROM events WHERE event_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, eventId);
@@ -236,18 +233,12 @@ public class DatabaseManager {
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
-            List<Event> allEvents = getAllEvents();
             while (rs.next()) {
                 int eventId = rs.getInt("event_id");
                 int quantity = rs.getInt("quantity");
-
-                Event matchingEvent = allEvents.stream()
-                        .filter(e -> e.getEventId() == eventId)
-                        .findFirst()
-                        .orElse(null);
-
-                if (matchingEvent != null) {
-                    cart.addItem(matchingEvent, quantity);
+                Event event = getEvent(eventId);
+                if (event != null) {
+                    cart.addItem(event, quantity);
                 }
             }
         }

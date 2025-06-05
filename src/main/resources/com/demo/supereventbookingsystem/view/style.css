@@ -1,0 +1,7 @@
+/* Hover effect */
+.button:hover {
+    -fx-cursor: hand;              /* Changes cursor to pointer */
+    -fx-scale-x: 1.02;             /* Slight zoom effect */
+    -fx-scale-y: 1.02;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 2);
+}

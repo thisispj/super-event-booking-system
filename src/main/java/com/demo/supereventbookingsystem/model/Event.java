@@ -1,7 +1,7 @@
 package com.demo.supereventbookingsystem.model;
 
 public class Event {
-    private int eventId; // Unique ID for the event, set by SQLite AUTOINCREMENT
+    private int eventId;
     private String title;
     private String venue;
     private String day;
@@ -9,18 +9,17 @@ public class Event {
     private int soldTickets;
     private int totalTickets;
 
-    // Constructor for creating new events (eventId will be set by the database)
+    // Constructor(s)
     public Event(String title, String venue, String day, double price, int soldTickets, int totalTickets) {
+        this.eventId = 0; // Will be set by database
         this.title = title;
         this.venue = venue;
         this.day = day;
-        this.eventId = 0; // Default value; will be set by the database
         this.price = price;
         this.soldTickets = soldTickets;
         this.totalTickets = totalTickets;
     }
 
-    // Constructor for loading from database (with eventId)
     public Event(int eventId, String title, String venue, String day, double price, int soldTickets, int totalTickets) {
         this.eventId = eventId;
         this.title = title;
@@ -31,13 +30,9 @@ public class Event {
         this.totalTickets = totalTickets;
     }
 
-    // Getters and setters
+    // Getters
     public int getEventId() {
         return eventId;
-    }
-
-    public void setEventId(int eventId) {
-        this.eventId = eventId;
     }
 
     public String getTitle() {
@@ -64,16 +59,12 @@ public class Event {
         return totalTickets;
     }
 
-    public void setSoldTickets(int soldTickets) {
-        this.soldTickets = soldTickets;
-    }
-
     public int getAvailableTickets() {
         return totalTickets - soldTickets;
     }
 
-    @Override
-    public String toString() {
-        return title + " at " + venue + " on " + day + " ($" + price + ")";
+    // Setter for eventId (used when loading from database)
+    public void setEventId(int eventId) {
+        this.eventId = eventId;
     }
 }

@@ -1,46 +1,47 @@
 package com.demo.supereventbookingsystem.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.demo.supereventbookingsystem.dao.DatabaseManager;
+
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Cart {
-    private List<CartItem> items;
+    private Map<Integer, Integer> items; // Map of eventId to quantity
 
     public Cart() {
-        this.items = new ArrayList<>();
+        this.items = new HashMap<>();
     }
 
     public void addItem(Event event, int quantity) {
-        items.add(new CartItem(event, quantity));
+        items.merge(event.getEventId(), quantity, Integer::sum);
     }
 
-    public List<CartItem> getItems() {
-        return new ArrayList<>(items);
+    public Map<Integer, Integer> getItems() {
+        return new HashMap<>(items); // Return a copy to prevent external modification
     }
 
     public void clear() {
         items.clear();
     }
 
-    public static class CartItem {
-        private final Event event;
-        private final int quantity;
-
-        public CartItem(Event event, int quantity) {
-            this.event = event;
-            this.quantity = quantity;
+    public double getTotalPrice() {
+        double total = 0.0;
+        try {
+            for (Map.Entry<Integer, Integer> entry : items.entrySet()) {
+                Event event = DatabaseManager.getInstance().getEvent(entry.getKey());
+                if (event != null) {
+                    total += event.getPrice() * entry.getValue();
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error calculating total price: " + e.getMessage());
+            e.printStackTrace();
         }
+        return total;
+    }
 
-        public Event getEvent() {
-            return event;
-        }
-
-        public int getQuantity() {
-            return quantity;
-        }
-
-        public double getTotalPrice() {
-            return event.getPrice() * quantity;
-        }
+    public int getItemCount() {
+        return items.size();
     }
 }
