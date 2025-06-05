@@ -2,6 +2,8 @@ package com.demo.supereventbookingsystem.controller;
 
 import com.demo.supereventbookingsystem.dao.DatabaseManager;
 import com.demo.supereventbookingsystem.model.User;
+import javafx.animation.PauseTransition;
+import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -9,7 +11,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -37,7 +41,7 @@ public class SignupController {
             String password = passwordField.getText();
             String preferredName = preferredNameField.getText();
             if (username.isEmpty() || password.isEmpty() || preferredName.isEmpty()) {
-                errorLabel.setText("All fields are required.");
+                showTemporaryError("All fields are required.");
                 return;
             }
             User user = new User(username, password, preferredName);
@@ -45,7 +49,7 @@ public class SignupController {
             mainController.setCurrentUser(user);
             mainController.showDashboard();
         } catch (SQLException e) {
-            errorLabel.setText("Error: Username already exists or database issue.");
+            showTemporaryError("Error: Username already exists or database issue.");
         }
     }
 
@@ -59,7 +63,26 @@ public class SignupController {
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(scene);
         } catch (IOException e) {
-            errorLabel.setText("Error loading login: " + e.getMessage());
+            showTemporaryError("Error loading login: " + e.getMessage());
+        }
+    }
+
+    private void showTemporaryError(String errorMessage) {
+        if (errorLabel != null) {
+            errorLabel.setText(errorMessage);
+            errorLabel.setTextFill(Color.web("#a80000"));
+
+            TranslateTransition shake = new TranslateTransition(Duration.millis(50), errorLabel);
+            shake.setByX(5);
+            shake.setCycleCount(6);
+            shake.setAutoReverse(true);
+            shake.play();
+
+            PauseTransition pause = new PauseTransition(Duration.seconds(5));
+            pause.setOnFinished(e -> {
+                errorLabel.setText("");
+            });
+            pause.play();
         }
     }
 }

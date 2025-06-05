@@ -12,10 +12,24 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class DatabaseManager {
     private static DatabaseManager instance;
     private Connection connection;
+
+    // Map of days to their order in the week (Mon = 1, Sun = 7)
+    private static final Map<String, Integer> DAY_ORDER = new HashMap<>();
+    static {
+        DAY_ORDER.put("Mon", 1);
+        DAY_ORDER.put("Tue", 2);
+        DAY_ORDER.put("Wed", 3);
+        DAY_ORDER.put("Thu", 4);
+        DAY_ORDER.put("Fri", 5);
+        DAY_ORDER.put("Sat", 6);
+        DAY_ORDER.put("Sun", 7);
+    }
 
     private DatabaseManager() {
         try {
@@ -59,7 +73,6 @@ public class DatabaseManager {
     public void loadEventsFromFile(String filePath) throws SQLException {
         List<Event> events = parseEventsFile(filePath);
         for (Event event : events) {
-            // Only insert if the event doesn't already exist
             if (!eventExists(event)) {
                 insertEvent(event);
             }
@@ -95,7 +108,6 @@ public class DatabaseManager {
         return events;
     }
 
-    // Check if an event with the same attributes already exists in the database
     private boolean eventExists(Event event) throws SQLException {
         String sql = "SELECT COUNT(*) FROM events WHERE title = ? AND venue = ? AND day = ? AND price = ? AND sold_tickets = ? AND total_tickets = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -107,7 +119,7 @@ public class DatabaseManager {
             pstmt.setInt(6, event.getTotalTickets());
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return rs.getInt(1) > 0; // Returns true if an event with these attributes exists
+                return rs.getInt(1) > 0;
             }
         }
         return false;
@@ -184,6 +196,36 @@ public class DatabaseManager {
         }
     }
 
+    // Update sold tickets for all events in the cart after checkout
+    public void updateSoldTicketsAfterCheckout(Cart cart) throws SQLException {
+        for (Map.Entry<Integer, Integer> entry : cart.getItems().entrySet()) {
+            Event event = getEvent(entry.getKey());
+            if (event != null) {
+                updateEventTickets(event, entry.getValue());
+            }
+        }
+    }
+
+    // Validate if the event's day is bookable based on the current day
+    public String validateEventDates(Cart cart) throws SQLException {
+        // Current day is Thursday, June 05, 2025
+        String currentDay = "Thu"; // Hardcoded based on system date
+        int currentDayOrder = DAY_ORDER.getOrDefault(currentDay, 1);
+
+        for (Integer eventId : cart.getItems().keySet()) {
+            Event event = getEvent(eventId);
+            if (event != null) {
+                String eventDay = event.getDay();
+                int eventDayOrder = DAY_ORDER.getOrDefault(eventDay, 1);
+                if (eventDayOrder < currentDayOrder) {
+                    return String.format("Cannot book %s on %s. Booking is only allowed for events from %s to Sunday.",
+                            event.getTitle(), eventDay, currentDay);
+                }
+            }
+        }
+        return null; // No issues
+    }
+
     public boolean validateUser(String username, String password) throws SQLException {
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -239,6 +281,21 @@ public class DatabaseManager {
     }
 
     public void addToCart(String username, Event event, int quantity) throws SQLException {
+        // Validate seat availability before adding to cart
+        int availableSeats = event.getAvailableTickets();
+        if (quantity > availableSeats) {
+            throw new SQLException(String.format("Not enough seats available for %s on %s. Requested: %d, Available: %d",
+                    event.getTitle(), event.getDay(), quantity, availableSeats));
+        }
+
+        // Validate event date
+        Cart tempCart = new Cart();
+        tempCart.addItem(event, quantity);
+        String dateValidationError = validateEventDates(tempCart);
+        if (dateValidationError != null) {
+            throw new SQLException(dateValidationError);
+        }
+
         double totalPrice = event.getPrice() * quantity;
         String sql = "INSERT INTO cart (username, event_id, quantity, total_price) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {

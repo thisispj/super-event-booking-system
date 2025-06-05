@@ -16,6 +16,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Button;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import java.net.URL;
@@ -46,6 +47,10 @@ public class DashboardController implements Initializable {
     private TableColumn<Event, Integer> availableColumn;
     @FXML
     private TextField quantityField;
+    @FXML
+    private Button addToCartButton;
+    @FXML
+    private Button viewCartButton;
 
     private MainController mainController;
     private User currentUser;
@@ -56,12 +61,19 @@ public class DashboardController implements Initializable {
         if (eventTable == null) {
             System.err.println("eventTable is null! FXML binding failed.");
         }
+
+        // Disable Add to Cart button and quantityField on load
+        addToCartButton.setDisable(true);
+        quantityField.setDisable(true);
+        viewCartButton.setDisable(true); // Disable View Cart initially
+
         try {
             DatabaseManager.getInstance().loadEventsFromFile("src/main/resources/com/demo/supereventbookingsystem/events.dat");
         } catch (SQLException e) {
             System.err.println("Error loading events from file: " + e.getMessage());
             e.printStackTrace();
         }
+
         if (currentUser != null) {
             loadEvents();
             updateCartCount();
@@ -177,9 +189,15 @@ public class DashboardController implements Initializable {
                         setText(null);
                     } else {
                         Event event = getTableRow().getItem();
-                        setText(String.valueOf(event.getAvailableTickets()));
-                        setTextFill(Color.BLACK);
-                        System.out.println("Available cell: " + event.getAvailableTickets());
+                        int availableTickets = event.getAvailableTickets();
+                        if (availableTickets == 0) {
+                            setText("Sold Out");
+                            setTextFill(Color.web("#F08080")); // Light coral red for sold out
+                        } else {
+                            setText(String.valueOf(availableTickets));
+                            setTextFill(Color.BLACK);
+                        }
+                        System.out.println("Available cell: " + (availableTickets == 0 ? "Sold Out" : availableTickets));
                     }
                 }
             });
@@ -193,6 +211,18 @@ public class DashboardController implements Initializable {
             } else {
                 availableEventsLabel.setText("Available Events: " + events.size());
             }
+
+            // Add listener to enable/disable Add to Cart button and quantityField based on selection
+            eventTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+                if (newSelection != null) {
+                    int availableTickets = newSelection.getAvailableTickets();
+                    addToCartButton.setDisable(availableTickets <= 0);
+                    quantityField.setDisable(availableTickets <= 0);
+                } else {
+                    addToCartButton.setDisable(true);
+                    quantityField.setDisable(true);
+                }
+            });
 
             events.forEach(event -> System.out.println("Event: " + event.getTitle() + ", Venue: " + event.getVenue() + ", Day: " + event.getDay() + ", Price: " + event.getPrice() + ", Available: " + event.getAvailableTickets()));
         } catch (SQLException e) {
@@ -226,21 +256,19 @@ public class DashboardController implements Initializable {
                 showTemporaryError("Quantity must be greater than 0.");
                 return;
             }
-            if (quantity > selectedEvent.getAvailableTickets()) {
-                showTemporaryError("Not enough tickets available.");
-                return;
-            }
 
             Cart cart = DatabaseManager.getInstance().getCartItems(currentUser.getUsername());
             boolean eventExists = cart.getItems().containsKey(selectedEvent.getEventId());
+            int existingQuantity = eventExists ? cart.getItems().get(selectedEvent.getEventId()) : 0;
+            int totalRequestedQuantity = existingQuantity + quantity;
+
+            if (totalRequestedQuantity > selectedEvent.getAvailableTickets()) {
+                showTemporaryError("Not enough tickets available. Requested: " + totalRequestedQuantity + ", Available: " + selectedEvent.getAvailableTickets());
+                return;
+            }
+
             if (eventExists) {
-                int newQuantity = cart.getItems().get(selectedEvent.getEventId()) + quantity;
-                if (newQuantity <= selectedEvent.getAvailableTickets()) {
-                    updateCartItemQuantity(currentUser.getUsername(), selectedEvent.getEventId(), newQuantity);
-                } else {
-                    showTemporaryError("Not enough tickets available for the updated quantity.");
-                    return;
-                }
+                updateCartItemQuantity(currentUser.getUsername(), selectedEvent.getEventId(), totalRequestedQuantity);
             } else {
                 DatabaseManager.getInstance().addToCart(currentUser.getUsername(), selectedEvent, quantity);
             }
@@ -250,7 +278,7 @@ public class DashboardController implements Initializable {
         } catch (NumberFormatException e) {
             showTemporaryError("Please enter a valid number.");
         } catch (SQLException e) {
-            showTemporaryError("Database error: " + e.getMessage());
+            showTemporaryError("Error: " + e.getMessage());
             System.err.println("SQLException in handleAddToCart: " + e.getMessage());
             e.printStackTrace();
         }
@@ -283,9 +311,17 @@ public class DashboardController implements Initializable {
         if (currentUser != null && statusLabel != null) {
             try {
                 Cart cart = DatabaseManager.getInstance().getCartItems(currentUser.getUsername());
-                statusLabel.setText("Items in Cart: " + cart.getItemCount());
+                int itemCount = cart.getItemCount();
+                statusLabel.setText("Items in Cart: " + itemCount);
+                // Enable View Cart button only if there are items in the cart
+                if (viewCartButton != null) {
+                    viewCartButton.setDisable(itemCount == 0);
+                }
             } catch (SQLException e) {
                 statusLabel.setText("Items in Cart: 0");
+                if (viewCartButton != null) {
+                    viewCartButton.setDisable(true);
+                }
                 System.err.println("Error updating cart count: " + e.getMessage());
                 e.printStackTrace();
             }

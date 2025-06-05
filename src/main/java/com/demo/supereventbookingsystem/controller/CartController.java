@@ -7,15 +7,18 @@ import javafx.animation.PauseTransition;
 import javafx.animation.TranslateTransition;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
@@ -61,17 +64,18 @@ public class CartController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Set up TableView columns with custom CellFactory
         eventIdColumn.setCellFactory(column -> new TableCell<Event, Integer>() {
             @Override
             protected void updateItem(Integer item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                     setText(null);
+                    System.out.println("Event ID cell: empty");
                 } else {
                     Event event = getTableRow().getItem();
                     setText(String.valueOf(event.getEventId()));
-                    setTextFill(Color.BLACK); // Ensure text is visible
+                    setTextFill(Color.BLACK);
+                    System.out.println("Event ID cell set to: " + event.getEventId());
                 }
             }
         });
@@ -82,10 +86,12 @@ public class CartController implements Initializable {
                 super.updateItem(item, empty);
                 if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                     setText(null);
+                    System.out.println("Title cell: empty");
                 } else {
                     Event event = getTableRow().getItem();
                     setText(event.getTitle());
-                    setTextFill(Color.BLACK); // Ensure text is visible
+                    setTextFill(Color.BLACK);
+                    System.out.println("Title cell set to: " + event.getTitle());
                 }
             }
         });
@@ -96,10 +102,12 @@ public class CartController implements Initializable {
                 super.updateItem(item, empty);
                 if (empty || getTableRow() == null || getTableRow().getItem() == null) {
                     setText(null);
+                    System.out.println("Venue cell: empty");
                 } else {
                     Event event = getTableRow().getItem();
                     setText(event.getVenue());
-                    setTextFill(Color.BLACK); // Ensure text is visible
+                    setTextFill(Color.BLACK);
+                    System.out.println("Venue cell set to: " + event.getVenue());
                 }
             }
         });
@@ -113,12 +121,11 @@ public class CartController implements Initializable {
                 } else {
                     Event event = getTableRow().getItem();
                     setText(event.getDay());
-                    setTextFill(Color.BLACK); // Ensure text is visible
+                    setTextFill(Color.BLACK);
                 }
             }
         });
 
-        // Custom cell factory for quantity and totalPrice since they're not direct properties of Event
         quantityColumn.setCellFactory(column -> new TableCell<Event, Integer>() {
             @Override
             protected void updateItem(Integer item, boolean empty) {
@@ -129,7 +136,7 @@ public class CartController implements Initializable {
                     Event event = getTableRow().getItem();
                     Integer quantity = cart.getItems().get(event.getEventId());
                     setText(String.valueOf(quantity != null ? quantity : 0));
-                    setTextFill(Color.BLACK); // Ensure text is visible
+                    setTextFill(Color.BLACK);
                 }
             }
         });
@@ -145,31 +152,31 @@ public class CartController implements Initializable {
                     Integer quantity = cart.getItems().get(event.getEventId());
                     double totalPrice = (quantity != null ? quantity : 0) * (event != null ? event.getPrice() : 0.0);
                     setText(String.format("%.2f", totalPrice));
-                    setTextFill(Color.BLACK); // Ensure text is visible
+                    setTextFill(Color.BLACK);
                 }
             }
         });
 
-        // Initialize UI elements
         if (cart != null) {
             updateTableView();
             cartLabel.setText("Your Cart (" + cart.getItemCount() + " items)");
             updateCartTotal();
+            updateCheckoutButtonState(); // Update Checkout button state based on cart
         } else {
             cartLabel.setText("Your Cart (0 items)");
             cartTotalLabel.setText("Cart Total: $0.0");
+            if (checkoutBtn != null) {
+                checkoutBtn.setDisable(true); // Disable Checkout button if cart is null
+            }
         }
 
-        // Disable buttons and field by default
         plusTicketBtn.setDisable(true);
         minusTicketBtn.setDisable(true);
         removeEventBtn.setDisable(true);
         quantityField.setDisable(true);
 
-        // Bind the removeEventBtn's onAction
         removeEventBtn.setOnAction(event -> handleRemoveEvent());
 
-        // Handle TableView selection
         cartTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
                 selectedEventLabel.setText(newSelection.getTitle());
@@ -200,6 +207,7 @@ public class CartController implements Initializable {
             updateTableView();
             cartLabel.setText("Your Cart (" + cart.getItemCount() + " items)");
             updateCartTotal();
+            updateCheckoutButtonState(); // Update Checkout button state based on cart
         }
     }
 
@@ -261,6 +269,7 @@ public class CartController implements Initializable {
                 updateTableView();
                 cartLabel.setText("Your Cart (" + cart.getItemCount() + " items)");
                 updateCartTotal();
+                updateCheckoutButtonState(); // Update Checkout button state after removal
                 if (!cart.getItems().containsKey(selectedEventId)) {
                     cartTable.getSelectionModel().clearSelection();
                 } else {
@@ -277,7 +286,68 @@ public class CartController implements Initializable {
 
     @FXML
     private void handleCheckout() {
-        // To be implemented later
+        if (cart == null || cart.getItemCount() == 0) {
+            showTemporaryError("Cart is empty!");
+            return;
+        }
+
+        try {
+            double totalPrice = cart.getTotalPrice();
+
+            // Show price confirmation using Alert dialog
+            Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmationAlert.setTitle("Price Confirmation");
+            confirmationAlert.setHeaderText("Total Price: $" + String.format("%.2f", totalPrice));
+            confirmationAlert.setContentText("Do you want to proceed with this total?");
+            if (confirmationAlert.showAndWait().get() != ButtonType.OK) {
+                return; // User cancelled, exit the method
+            }
+
+            // Load the custom checkout scene for confirmation code
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/checkout.fxml"));
+            Scene checkoutScene = new Scene(loader.load(), 400, 300);
+            CheckoutController checkoutController = loader.getController();
+            checkoutController.setTotalPrice(totalPrice);
+            checkoutController.setCart(cart);
+
+            Stage checkoutStage = new Stage();
+            checkoutStage.setTitle("Checkout");
+            checkoutStage.initModality(Modality.APPLICATION_MODAL); // Make it modal
+            checkoutStage.setScene(checkoutScene);
+            checkoutStage.showAndWait(); // Wait for the user to close the stage
+
+            // Proceed based on the user's action
+            if (checkoutController.isConfirmed()) {
+                // Proceed with checkout
+                DatabaseManager.getInstance().updateSoldTicketsAfterCheckout(cart);
+                DatabaseManager.getInstance().clearCart(username);
+
+                // Show success message in a dialog box
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Order Success");
+                successAlert.setHeaderText("Thank you for your purchase!");
+                successAlert.setContentText("Your tickets have been booked. Total: $" + String.format("%.2f", totalPrice));
+                successAlert.showAndWait();
+
+                // Clear the cart and update UI
+                cart.clear();
+                updateTableView();
+                cartLabel.setText("Your Cart (0 items)");
+                updateCartTotal();
+                updateCheckoutButtonState(); // Update Checkout button state after checkout
+                cartTable.getSelectionModel().clearSelection();
+            } else {
+                // Checkout was cancelled, no action needed
+                System.out.println("Checkout cancelled by user.");
+            }
+
+        } catch (SQLException e) {
+            showTemporaryError("Checkout failed: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            showTemporaryError("Error loading checkout scene: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -288,6 +358,20 @@ public class CartController implements Initializable {
     private void updateCartItemQuantity(Event event, int newQuantity) {
         if (username != null) {
             try {
+                int availableTickets = event.getAvailableTickets();
+                if (newQuantity > availableTickets) {
+                    showTemporaryError("Cannot update quantity: only " + availableTickets + " tickets available!");
+                    return;
+                }
+
+                Cart tempCart = new Cart();
+                tempCart.addItem(event, newQuantity);
+                String dateValidationError = DatabaseManager.getInstance().validateEventDates(tempCart);
+                if (dateValidationError != null) {
+                    showTemporaryError(dateValidationError);
+                    return;
+                }
+
                 String sql = "UPDATE cart SET quantity = ?, total_price = ? WHERE username = ? AND event_id = ?";
                 try (var pstmt = DatabaseManager.getInstance().getConnection().prepareStatement(sql)) {
                     pstmt.setInt(1, newQuantity);
@@ -311,6 +395,7 @@ public class CartController implements Initializable {
                 updateTableView();
                 quantityField.setText(String.valueOf(newQuantity));
                 updateCartTotal();
+                updateCheckoutButtonState(); // Update Checkout button state after quantity change
             } catch (SQLException e) {
                 showTemporaryError("Error updating quantity: " + e.getMessage());
                 e.printStackTrace();
@@ -329,6 +414,7 @@ public class CartController implements Initializable {
     private void showTemporaryError(String errorMessage) {
         if (cartErrorLabel != null) {
             cartErrorLabel.setText(errorMessage);
+            cartErrorLabel.setTextFill(Color.web("#a80000")); // Red for errors
 
             TranslateTransition shake = new TranslateTransition(Duration.millis(50), cartErrorLabel);
             shake.setByX(5);
@@ -340,6 +426,10 @@ public class CartController implements Initializable {
             pause.setOnFinished(e -> cartErrorLabel.setText(""));
             pause.play();
         }
+    }
+
+    private void showTemporarySuccess(String successMessage) {
+        // This method is no longer used for checkout success
     }
 
     private void reselectItem(int eventId) {
@@ -370,7 +460,7 @@ public class CartController implements Initializable {
                                 .filter(event -> event != null)
                                 .collect(Collectors.toList())
                 ));
-                cartTable.refresh(); // Ensure the table reflects the new data
+                cartTable.refresh();
                 System.out.println("cartTable items count: " + cartTable.getItems().size());
             } else {
                 System.out.println("cart or cartTable is null, clearing table");
@@ -380,6 +470,14 @@ public class CartController implements Initializable {
         } catch (Exception e) {
             showTemporaryError("Error updating cart display: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void updateCheckoutButtonState() {
+        if (checkoutBtn != null) {
+            boolean hasItems = cart != null && cart.getItemCount() > 0;
+            checkoutBtn.setDisable(!hasItems);
+            System.out.println("Checkout button state updated: " + (hasItems ? "Enabled" : "Disabled"));
         }
     }
 }

@@ -44,4 +44,20 @@ public class Cart {
     public int getItemCount() {
         return items.size();
     }
+
+    // Validate seat availability for all items in the cart
+    public String validateSeatAvailability() throws SQLException {
+        for (Map.Entry<Integer, Integer> entry : items.entrySet()) {
+            Event event = DatabaseManager.getInstance().getEvent(entry.getKey());
+            if (event != null) {
+                int requestedQuantity = entry.getValue();
+                int availableSeats = event.getAvailableTickets();
+                if (requestedQuantity > availableSeats) {
+                    return String.format("Not enough seats available for %s on %s. Requested: %d, Available: %d",
+                            event.getTitle(), event.getDay(), requestedQuantity, availableSeats);
+                }
+            }
+        }
+        return null; // No issues
+    }
 }
