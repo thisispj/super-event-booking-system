@@ -9,14 +9,28 @@ public class Order {
     private List<Booking> bookings;
     private double totalPrice;
 
+    // Constructor for creating a new order (e.g., during checkout)
     public Order(String orderNumber, LocalDateTime dateTime, List<Booking> bookings) {
         this.orderNumber = orderNumber;
         this.dateTime = dateTime;
         this.bookings = bookings;
-        this.totalPrice = bookings.stream().mapToDouble(Booking::getTotalPrice).sum();
+        this.totalPrice = calculateTotalPrice(); // Calculate for new orders
     }
 
-    // Getters
+    // Constructor for loading from database (avoids recalculation)
+    public Order(String orderNumber, LocalDateTime dateTime, List<Booking> bookings, double totalPrice) {
+        this.orderNumber = orderNumber;
+        this.dateTime = dateTime;
+        this.bookings = bookings;
+        this.totalPrice = totalPrice; // Use the value from the database
+    }
+
+    private double calculateTotalPrice() {
+        return bookings.stream()
+                .mapToDouble(booking -> booking.getEvent().getPrice() * booking.getQuantity())
+                .sum();
+    }
+
     public String getOrderNumber() {
         return orderNumber;
     }
@@ -31,5 +45,9 @@ public class Order {
 
     public double getTotalPrice() {
         return totalPrice;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
     }
 }

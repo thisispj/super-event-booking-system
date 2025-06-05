@@ -3,6 +3,8 @@ package com.demo.supereventbookingsystem.controller;
 import com.demo.supereventbookingsystem.dao.DatabaseManager;
 import com.demo.supereventbookingsystem.model.Cart;
 import com.demo.supereventbookingsystem.model.Event;
+import com.demo.supereventbookingsystem.model.Order;
+import com.demo.supereventbookingsystem.model.Booking;
 import javafx.animation.PauseTransition;
 import javafx.animation.TranslateTransition;
 import javafx.collections.FXCollections;
@@ -19,6 +21,10 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
@@ -161,12 +167,12 @@ public class CartController implements Initializable {
             updateTableView();
             cartLabel.setText("Your Cart (" + cart.getItemCount() + " items)");
             updateCartTotal();
-            updateCheckoutButtonState(); // Update Checkout button state based on cart
+            updateCheckoutButtonState();
         } else {
             cartLabel.setText("Your Cart (0 items)");
             cartTotalLabel.setText("Cart Total: $0.0");
             if (checkoutBtn != null) {
-                checkoutBtn.setDisable(true); // Disable Checkout button if cart is null
+                checkoutBtn.setDisable(true);
             }
         }
 
@@ -207,7 +213,7 @@ public class CartController implements Initializable {
             updateTableView();
             cartLabel.setText("Your Cart (" + cart.getItemCount() + " items)");
             updateCartTotal();
-            updateCheckoutButtonState(); // Update Checkout button state based on cart
+            updateCheckoutButtonState();
         }
     }
 
@@ -269,7 +275,7 @@ public class CartController implements Initializable {
                 updateTableView();
                 cartLabel.setText("Your Cart (" + cart.getItemCount() + " items)");
                 updateCartTotal();
-                updateCheckoutButtonState(); // Update Checkout button state after removal
+                updateCheckoutButtonState();
                 if (!cart.getItems().containsKey(selectedEventId)) {
                     cartTable.getSelectionModel().clearSelection();
                 } else {
@@ -312,21 +318,36 @@ public class CartController implements Initializable {
 
             Stage checkoutStage = new Stage();
             checkoutStage.setTitle("Checkout");
-            checkoutStage.initModality(Modality.APPLICATION_MODAL); // Make it modal
+            checkoutStage.initModality(Modality.APPLICATION_MODAL);
             checkoutStage.setScene(checkoutScene);
-            checkoutStage.showAndWait(); // Wait for the user to close the stage
+            checkoutStage.showAndWait();
 
             // Proceed based on the user's action
             if (checkoutController.isConfirmed()) {
-                // Proceed with checkout
+                // Create bookings for the order
+                List<Booking> bookings = new ArrayList<>();
+                for (Map.Entry<Integer, Integer> entry : cart.getItems().entrySet()) {
+                    Event event = DatabaseManager.getInstance().getEvent(entry.getKey());
+                    if (event != null) {
+                        bookings.add(new Booking(event, entry.getValue()));
+                    }
+                }
+
+                // Create and save the order
+                String orderNumber = DatabaseManager.getInstance().getNextOrderNumber();
+                LocalDateTime orderDateTime = LocalDateTime.now();
+                Order order = new Order(orderNumber, orderDateTime, bookings); // Use constructor that calculates totalPrice
+                DatabaseManager.getInstance().saveOrder(order, username);
+
+                // Update sold tickets and clear cart
                 DatabaseManager.getInstance().updateSoldTicketsAfterCheckout(cart);
                 DatabaseManager.getInstance().clearCart(username);
 
-                // Show success message in a dialog box
+                // Show success message
                 Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
                 successAlert.setTitle("Order Success");
                 successAlert.setHeaderText("Thank you for your purchase!");
-                successAlert.setContentText("Your tickets have been booked. Total: $" + String.format("%.2f", totalPrice));
+                successAlert.setContentText("Your tickets have been booked. Total: $" + String.format("%.2f", totalPrice) + "\nOrder Number: " + orderNumber);
                 successAlert.showAndWait();
 
                 // Clear the cart and update UI
@@ -334,10 +355,9 @@ public class CartController implements Initializable {
                 updateTableView();
                 cartLabel.setText("Your Cart (0 items)");
                 updateCartTotal();
-                updateCheckoutButtonState(); // Update Checkout button state after checkout
+                updateCheckoutButtonState();
                 cartTable.getSelectionModel().clearSelection();
             } else {
-                // Checkout was cancelled, no action needed
                 System.out.println("Checkout cancelled by user.");
             }
 
@@ -395,7 +415,7 @@ public class CartController implements Initializable {
                 updateTableView();
                 quantityField.setText(String.valueOf(newQuantity));
                 updateCartTotal();
-                updateCheckoutButtonState(); // Update Checkout button state after quantity change
+                updateCheckoutButtonState();
             } catch (SQLException e) {
                 showTemporaryError("Error updating quantity: " + e.getMessage());
                 e.printStackTrace();
@@ -414,7 +434,7 @@ public class CartController implements Initializable {
     private void showTemporaryError(String errorMessage) {
         if (cartErrorLabel != null) {
             cartErrorLabel.setText(errorMessage);
-            cartErrorLabel.setTextFill(Color.web("#a80000")); // Red for errors
+            cartErrorLabel.setTextFill(Color.web("#a80000"));
 
             TranslateTransition shake = new TranslateTransition(Duration.millis(50), cartErrorLabel);
             shake.setByX(5);

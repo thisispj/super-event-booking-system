@@ -71,4 +71,20 @@ public class MainController {
             e.printStackTrace();
         }
     }
+
+    public void showOrders(String username) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/orders.fxml"));
+            Parent root = loader.load();
+            OrdersController controller = loader.getController();
+            controller.setMainController(this);
+            controller.setUsername(username);
+            primaryStage.setScene(new Scene(root));
+            primaryStage.setTitle("Super Event Booking - Orders");
+            primaryStage.show();
+            primaryStage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -62,10 +62,9 @@ public class DashboardController implements Initializable {
             System.err.println("eventTable is null! FXML binding failed.");
         }
 
-        // Disable Add to Cart button and quantityField on load
         addToCartButton.setDisable(true);
         quantityField.setDisable(true);
-        viewCartButton.setDisable(true); // Disable View Cart initially
+        viewCartButton.setDisable(true);
 
         try {
             DatabaseManager.getInstance().loadEventsFromFile("src/main/resources/com/demo/supereventbookingsystem/events.dat");
@@ -192,7 +191,7 @@ public class DashboardController implements Initializable {
                         int availableTickets = event.getAvailableTickets();
                         if (availableTickets == 0) {
                             setText("Sold Out");
-                            setTextFill(Color.web("#F08080")); // Light coral red for sold out
+                            setTextFill(Color.web("#F08080"));
                         } else {
                             setText(String.valueOf(availableTickets));
                             setTextFill(Color.BLACK);
@@ -212,7 +211,6 @@ public class DashboardController implements Initializable {
                 availableEventsLabel.setText("Available Events: " + events.size());
             }
 
-            // Add listener to enable/disable Add to Cart button and quantityField based on selection
             eventTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
                 if (newSelection != null) {
                     int availableTickets = newSelection.getAvailableTickets();
@@ -298,7 +296,7 @@ public class DashboardController implements Initializable {
 
     @FXML
     private void handleViewOrders(ActionEvent event) {
-        // To be implemented
+        mainController.showOrders(currentUser.getUsername());
     }
 
     @FXML
@@ -313,7 +311,6 @@ public class DashboardController implements Initializable {
                 Cart cart = DatabaseManager.getInstance().getCartItems(currentUser.getUsername());
                 int itemCount = cart.getItemCount();
                 statusLabel.setText("Items in Cart: " + itemCount);
-                // Enable View Cart button only if there are items in the cart
                 if (viewCartButton != null) {
                     viewCartButton.setDisable(itemCount == 0);
                 }
