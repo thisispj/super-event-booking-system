@@ -5,37 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="17e15133-6b27-4888-9be0-ad34672b89c4" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mvnw" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mvnw.cmd" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/CartController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/DashboardController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/LoginController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/MainController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/SignupController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/dao/DatabaseManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Booking.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Cart.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Event.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Order.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/User.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/events.dat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/cart.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/dashboard.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/hello-view.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/login.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/signup.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test/java/com.demo.supereventbookingsystem/EventBookingSystemTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/events.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/CartController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/CartController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/DashboardController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/MainController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/dao/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/dao/DatabaseManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Event.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Event.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/cart.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/cart.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/dashboard.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/dashboard.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,6 +30,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="KubernetesApiPersistence"><![CDATA[{}]]></component>
+  <component name="KubernetesApiProvider"><![CDATA[{
+  "isMigrated": true
+}]]></component>
   <component name="MavenImportPreferences">
     <option name="generalSettings">
       <MavenGeneralSettings>
@@ -115,22 +97,22 @@
       <workItem from="1747734737252" duration="133000" />
       <workItem from="1747963729283" duration="16179000" />
       <workItem from="1748780646865" duration="686000" />
-      <workItem from="1748917784047" duration="13819000" />
+      <workItem from="1748917784047" duration="29030000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/dao/DatabaseManager.java</url>
-          <line>55</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

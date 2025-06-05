@@ -55,13 +55,14 @@ public class MainController {
         }
     }
 
-    public void showCart(Cart cart) {
+    public void showCart(Cart cart, String username) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/cart.fxml"));
             Parent root = loader.load();
             CartController controller = loader.getController();
             controller.setMainController(this);
             controller.setCartItems(cart);
+            controller.setUsername(username);
             primaryStage.setScene(new Scene(root));
             primaryStage.setTitle("Super Event Booking - Cart");
             primaryStage.show();

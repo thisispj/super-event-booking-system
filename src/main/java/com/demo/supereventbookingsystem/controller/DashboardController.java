@@ -30,7 +30,11 @@ public class DashboardController implements Initializable {
     @FXML
     private Label statusLabel;
     @FXML
+    private Label availableEventsLabel;
+    @FXML
     private TableView<Event> eventTable;
+    @FXML
+    private TableColumn<Event, Integer> eventIdColumn;
     @FXML
     private TableColumn<Event, String> titleColumn;
     @FXML
@@ -85,11 +89,26 @@ public class DashboardController implements Initializable {
             ObservableList<Event> events = FXCollections.observableArrayList(allEvents);
             System.out.println("Loaded " + events.size() + " events.");
 
-            if (eventTable == null || titleColumn == null || venueColumn == null || dayColumn == null || priceColumn == null || availableColumn == null) {
+            if (eventTable == null || eventIdColumn == null || titleColumn == null || venueColumn == null || dayColumn == null || priceColumn == null || availableColumn == null) {
                 System.err.println("FXML binding error: One or more UI components are null!");
-                welcomeLabel.setText("Error: TableView not initialized properly.");
+                showTemporaryError("Error: TableView not initialized properly.");
                 return;
             }
+
+            eventIdColumn.setCellFactory(column -> new TableCell<Event, Integer>() {
+                @Override
+                protected void updateItem(Integer item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                        setText(null);
+                    } else {
+                        Event event = (Event) getTableRow().getItem();
+                        setText(String.valueOf(event.getEventId()));
+                        setTextFill(Color.BLACK);
+                        System.out.println("Event ID cell: " + event.getEventId());
+                    }
+                }
+            });
 
             titleColumn.setCellFactory(column -> new TableCell<Event, String>() {
                 @Override
@@ -171,18 +190,18 @@ public class DashboardController implements Initializable {
             System.out.println("TableView populated with " + eventTable.getItems().size() + " items.");
 
             if (events.isEmpty()) {
-                welcomeLabel.setText("No events available.");
+                availableEventsLabel.setText("No events available.");
             } else {
-                welcomeLabel.setText("Welcome, " + currentUser.getPreferredName() + "! (" + events.size() + " events available)");
+                availableEventsLabel.setText("Available Events: " + events.size());
             }
 
             events.forEach(event -> System.out.println("Event: " + event.getTitle() + ", Venue: " + event.getVenue() + ", Day: " + event.getDay() + ", Price: " + event.getPrice() + ", Available: " + event.getAvailableTickets()));
         } catch (SQLException e) {
-            welcomeLabel.setText("Database error: " + e.getMessage());
+            showTemporaryError("Database error: " + e.getMessage());
             System.err.println("SQLException in loadEvents: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
-            welcomeLabel.setText("Unexpected error: " + e.getMessage());
+            showTemporaryError("Database error: " + e.getMessage());
             System.err.println("Unexpected error in loadEvents: " + e.getMessage());
             e.printStackTrace();
         }
@@ -214,7 +233,6 @@ public class DashboardController implements Initializable {
             }
 
             DatabaseManager.getInstance().addToCart(currentUser.getUsername(), selectedEvent, quantity);
-            welcomeLabel.setText("Added " + quantity + " ticket(s) for " + selectedEvent.getTitle() + " to cart!");
             quantityField.clear();
             updateCartCount();
         } catch (NumberFormatException e) {
@@ -230,9 +248,9 @@ public class DashboardController implements Initializable {
     private void handleViewCart(ActionEvent event) {
         try {
             Cart cart = DatabaseManager.getInstance().getCartItems(currentUser.getUsername());
-            mainController.showCart(cart);
+            mainController.showCart(cart, currentUser.getUsername());
         } catch (SQLException e) {
-            welcomeLabel.setText("Database error: " + e.getMessage());
+            showTemporaryError("Database error: " + e.getMessage());
             System.err.println("SQLException in handleViewCart: " + e.getMessage());
             e.printStackTrace();
         }
@@ -266,7 +284,7 @@ public class DashboardController implements Initializable {
         if (statusLabel != null) {
             // Set error message and color
             statusLabel.setText(errorMessage);
-            statusLabel.setTextFill(Color.web("#ff0000")); // Set to red
+            statusLabel.setTextFill(Color.web("#a80000")); // Set to red
 
             // Create shaking effect using TranslateTransition
             TranslateTransition shake = new TranslateTransition(Duration.millis(50), statusLabel);
@@ -278,7 +296,7 @@ public class DashboardController implements Initializable {
             shake.play();
 
             // Set up the 3-second timer to revert text and color
-            PauseTransition pause = new PauseTransition(Duration.seconds(3));
+            PauseTransition pause = new PauseTransition(Duration.seconds(5));
             pause.setOnFinished(e -> {
                 updateCartCount(); // Revert text to cart count
                 statusLabel.setTextFill(Color.web("#000000")); // Revert to black

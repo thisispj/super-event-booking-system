@@ -6,6 +6,12 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -19,15 +25,76 @@
         </font>
     </Label>
     <Label text="Review your selected events" />
-    <Separator prefWidth="200.0" />
-    <TableView fx:id="cartTable" prefHeight="400.0" prefWidth="1000.0">
-        <columns>
-            <TableColumn fx:id="titleColumn" prefWidth="200" text="Title" />
-            <TableColumn fx:id="venueColumn" prefWidth="150" text="Venue" />
-            <TableColumn fx:id="dayColumn" prefWidth="100" text="Day" />
-            <TableColumn fx:id="quantityColumn" prefWidth="150" text="Quantity" />
-            <TableColumn fx:id="totalPriceColumn" prefWidth="150" text="Total Price" />
-        </columns>
-    </TableView>
-    <Button onAction="#handleBack" prefHeight="35.0" prefWidth="200.0" style="-fx-background-color: #3CB371; -fx-font-weight: bold;" text="Back to Dashboard" textFill="WHITE" />
+    <Separator prefWidth="1001.0" />
+   <HBox prefHeight="553.0" prefWidth="1001.0">
+      <children>
+          <TableView fx:id="cartTable" maxHeight="499.0" maxWidth="752.0" prefHeight="499.0" prefWidth="752.0">
+              <columns>
+                  <TableColumn fx:id="eventIdColumn" text="Event ID" />
+                  <TableColumn fx:id="titleColumn" prefWidth="200" text="Title" />
+                  <TableColumn fx:id="venueColumn" prefWidth="150" text="Venue" />
+                  <TableColumn fx:id="dayColumn" text="Day" />
+                  <TableColumn fx:id="quantityColumn" prefWidth="90.0" text="Quantity" />
+                  <TableColumn fx:id="totalPriceColumn" prefWidth="150" text="Total Price" />
+              </columns>
+          </TableView>
+         <VBox alignment="TOP_CENTER" maxHeight="500.0" maxWidth="250.0" prefHeight="400.0" prefWidth="250.0" style="-fx-border-color: #B0C4DE; -fx-border-radius: 0;">
+            <children>
+               <Label alignment="CENTER" prefHeight="17.0" prefWidth="368.0" style="-fx-translate-x: 0; -fx-translate-y: 20; -fx-font-weight: bold;" text="Modify Cart" textFill="#011f5b">
+                  <font>
+                     <Font size="25.0" />
+                  </font>
+               </Label>
+               <Label style="-fx-translate-y: 25;" text="Update/remove items before you checkout" textFill="#868686" />
+               <Separator prefWidth="200.0" style="-fx-translate-y: 40;" />
+               <Label alignment="CENTER" contentDisplay="CENTER" style="-fx-translate-y: 50; -fx-translate-x: 0;" text="Selected Event:" textFill="#868686" />
+               <Label fx:id="selectedEventLabel" text="None" translateY="55.0" />
+               <GridPane alignment="CENTER" prefHeight="46.0" prefWidth="188.0" translateY="80.0">
+                 <columnConstraints>
+                   <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="80.0" minWidth="10.0" prefWidth="60.0" />
+                   <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="130.0" minWidth="10.0" prefWidth="125.0" />
+                     <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="80.0" minWidth="10.0" prefWidth="60.0" />
+                 </columnConstraints>
+                 <rowConstraints>
+                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                 </rowConstraints>
+                  <children>
+                     <Button fx:id="plusTicketBtn" alignment="CENTER" maxHeight="30.0" maxWidth="32.0" onAction="#handleAddTicket" prefHeight="30.0" prefWidth="32.0" style="-fx-background-color: #1E90FF;" text="+" textFill="WHITE" translateX="-10.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                        <tooltip>
+                           <Tooltip text="Click to add the selected quantity of tickets to the cart" />
+                        </tooltip>
+                     </Button>
+                     <Button fx:id="minusTicketBtn" alignment="CENTER" contentDisplay="CENTER" maxHeight="30.0" maxWidth="32.0" onAction="#handleRemoveTicket" prefHeight="30.0" prefWidth="32.0" style="-fx-background-color: #1E90FF;" text="-" textFill="WHITE" translateX="10.0" GridPane.rowIndex="1">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                        <tooltip>
+                           <Tooltip text="Click to see the items in the cart" />
+                        </tooltip>
+                     </Button>
+                     <TextField fx:id="quantityField" alignment="CENTER" editable="false" maxHeight="30.0" maxWidth="120.0" prefHeight="30.0" prefWidth="120.0" promptText="Number of tickets" scaleShape="false" style="-fx-translate-x: 0; -fx-translate-y: 0;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  </children>
+               </GridPane>
+               <Button fx:id="removeEventBtn" maxHeight="30.0" maxWidth="200.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="200.0" style="-fx-background-color: #F08080; -fx-font-weight: bold;" text="Remove Event" textFill="WHITE" translateY="90.0" />
+               <Separator prefWidth="200.0" translateY="-10.0" />
+               <Label fx:id="cartErrorLabel" textFill="RED" translateY="100.0" wrapText="true" />
+               <Label fx:id="cartTotalLabel" text="Cart Total: $0.0" translateY="140.0" />
+               <Button fx:id="checkoutBtn" alignment="CENTER" maxHeight="30.0" maxWidth="200.0" onAction="#handleCheckout" prefHeight="30.0" prefWidth="200.0" style="-fx-translate-x: 0; -fx-background-color: #FEBE10; -fx-font-weight: bold;" text="Checkout" textFill="#4a4a4a" translateY="160.0">
+                  <tooltip>
+                     <Tooltip text="Click to see the previous order history" />
+                  </tooltip>
+               </Button>
+               <Separator prefWidth="200.0" translateY="180.0" />
+               <Label text="Add more events?" textFill="#868686" translateY="190.0" />
+                <Button fx:id="backToDasboardBtn" onAction="#handleBack" prefHeight="35.0" prefWidth="200.0" style="-fx-background-color: #3CB371; -fx-font-weight: bold;" text="Back to Dashboard" textFill="WHITE" translateY="200.0" />
+               <Separator prefWidth="200.0" translateY="20.0" />
+            </children>
+         </VBox>
+      </children>
+   </HBox>
 </VBox>
