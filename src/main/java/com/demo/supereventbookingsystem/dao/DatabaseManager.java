@@ -59,7 +59,10 @@ public class DatabaseManager {
     public void loadEventsFromFile(String filePath) throws SQLException {
         List<Event> events = parseEventsFile(filePath);
         for (Event event : events) {
-            insertEvent(event);
+            // Only insert if the event doesn't already exist
+            if (!eventExists(event)) {
+                insertEvent(event);
+            }
         }
     }
 
@@ -92,20 +95,40 @@ public class DatabaseManager {
         return events;
     }
 
-    public void insertEvent(Event event) throws SQLException {
-        String sql = "INSERT INTO events (title, venue, day, price, sold_tickets, total_tickets) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    // Check if an event with the same attributes already exists in the database
+    private boolean eventExists(Event event) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM events WHERE title = ? AND venue = ? AND day = ? AND price = ? AND sold_tickets = ? AND total_tickets = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, event.getTitle());
             pstmt.setString(2, event.getVenue());
             pstmt.setString(3, event.getDay());
             pstmt.setDouble(4, event.getPrice());
             pstmt.setInt(5, event.getSoldTickets());
             pstmt.setInt(6, event.getTotalTickets());
-            pstmt.executeUpdate();
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0; // Returns true if an event with these attributes exists
+            }
+        }
+        return false;
+    }
 
-            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    event.setEventId(generatedKeys.getInt(1));
+    public void insertEvent(Event event) throws SQLException {
+        if (!eventExists(event)) {
+            String sql = "INSERT INTO events (title, venue, day, price, sold_tickets, total_tickets) VALUES (?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                pstmt.setString(1, event.getTitle());
+                pstmt.setString(2, event.getVenue());
+                pstmt.setString(3, event.getDay());
+                pstmt.setDouble(4, event.getPrice());
+                pstmt.setInt(5, event.getSoldTickets());
+                pstmt.setInt(6, event.getTotalTickets());
+                pstmt.executeUpdate();
+
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        event.setEventId(generatedKeys.getInt(1));
+                    }
                 }
             }
         }

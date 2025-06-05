@@ -5,18 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="17e15133-6b27-4888-9be0-ad34672b89c4" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/style.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/events.db" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/CartController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/CartController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/DashboardController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/dao/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/dao/DatabaseManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Cart.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Cart.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Event.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Event.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/cart.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/cart.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/dashboard.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/dashboard.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/login.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/login.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/signup.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/signup.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -100,7 +90,7 @@
       <workItem from="1747734737252" duration="133000" />
       <workItem from="1747963729283" duration="16179000" />
       <workItem from="1748780646865" duration="686000" />
-      <workItem from="1748917784047" duration="36734000" />
+      <workItem from="1748917784047" duration="37091000" />
     </task>
     <servers />
   </component>
