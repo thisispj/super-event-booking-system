@@ -9,13 +9,13 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="540.0" prefWidth="400.0" spacing="10" style="-fx-background-color: #E1EBEE;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.demo.supereventbookingsystem.controller.SignupController" stylesheets="@style.css">
+<VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="540.0" prefWidth="400.0" spacing="10" style="-fx-background-color: #E1EBEE;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.demo.supereventbookingsystem.controller.SignupController">
     <padding>
         <Insets bottom="20" left="20" right="20" top="20" />
     </padding>
     <Label style="-fx-translate-y: -20;" text="Super Event Booking" textFill="#011f5b">
       <font>
-         <Font name="System Bold" size="24.0" />
+         <Font name="System Bold" size="28.0" />
       </font></Label>
    <Label style="-fx-translate-y: -20;" text="Signup to become a registered user" />
    <VBox alignment="TOP_CENTER" prefHeight="276.0" prefWidth="360.0" style="-fx-border-color: #B0C4DE; -fx-border-radius: 5;">

@@ -87,4 +87,20 @@ public class MainController {
             e.printStackTrace();
         }
     }
+
+    public void showAdminDashboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/admin_dashboard.fxml"));
+            Parent root = loader.load();
+            AdminDashboardController controller = loader.getController();
+            controller.setMainController(this);
+            controller.setCurrentUser(currentUser);
+            primaryStage.setScene(new Scene(root));
+            primaryStage.setTitle("Super Event Booking - Admin Dashboard");
+            primaryStage.show();
+            primaryStage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

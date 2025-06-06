@@ -21,10 +21,8 @@ import java.sql.SQLException;
 public class LoginController {
     @FXML
     private TextField usernameField;
-
     @FXML
     private PasswordField passwordField;
-
     @FXML
     private Label errorLabel;
 
@@ -42,7 +40,13 @@ public class LoginController {
             if (DatabaseManager.getInstance().validateUser(username, password)) {
                 User user = DatabaseManager.getInstance().getUser(username);
                 mainController.setCurrentUser(user);
-                mainController.showDashboard();
+                if (user.getUserTypeId() == 2) {
+                    mainController.showAdminDashboard();
+                } else if (user.getUserTypeId() == 1) {
+                    mainController.showDashboard();
+                } else {
+                    showTemporaryError("Invalid user type.");
+                }
             } else {
                 showTemporaryError("Invalid username or password.");
             }
@@ -69,17 +73,13 @@ public class LoginController {
         if (errorLabel != null) {
             errorLabel.setText(errorMessage);
             errorLabel.setTextFill(Color.web("#a80000"));
-
             TranslateTransition shake = new TranslateTransition(Duration.millis(50), errorLabel);
             shake.setByX(5);
             shake.setCycleCount(6);
             shake.setAutoReverse(true);
             shake.play();
-
             PauseTransition pause = new PauseTransition(Duration.seconds(5));
-            pause.setOnFinished(e -> {
-                errorLabel.setText("");
-            });
+            pause.setOnFinished(e -> errorLabel.setText(""));
             pause.play();
         }
     }

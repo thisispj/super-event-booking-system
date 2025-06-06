@@ -52,10 +52,10 @@ public class DatabaseManager {
     }
 
     private void createTables() throws SQLException {
-        String createUsersTable = "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, preferred_name TEXT)";
-        String createEventsTable = "CREATE TABLE IF NOT EXISTS events (event_id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, venue TEXT, day TEXT, price REAL, sold_tickets INTEGER, total_tickets INTEGER)";
-        String createOrdersTable = "CREATE TABLE IF NOT EXISTS orders (order_number TEXT PRIMARY KEY, username TEXT, date_time TEXT, total_price REAL)";
-        String createBookingsTable = "CREATE TABLE IF NOT EXISTS bookings (order_number TEXT, event_title TEXT, event_venue TEXT, event_day TEXT, quantity INTEGER)";
+        String createUsersTable = "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, preferred_name TEXT, user_type_id INTEGER DEFAULT 1, FOREIGN KEY (user_type_id) REFERENCES user_types(user_type_id))";
+        String createEventsTable = "CREATE TABLE IF NOT EXISTS events (event_id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, venue TEXT, day TEXT, price REAL, sold_tickets INTEGER, total_tickets INTEGER, is_disabled INTEGER DEFAULT 0)";
+        String createOrdersTable = "CREATE TABLE IF NOT EXISTS orders (order_number TEXT PRIMARY KEY, username TEXT, date_time TEXT, total_price REAL, FOREIGN KEY (username) REFERENCES users(username))";
+        String createBookingsTable = "CREATE TABLE IF NOT EXISTS bookings (order_number TEXT, event_title TEXT, event_venue TEXT, event_day TEXT, quantity INTEGER, FOREIGN KEY (order_number) REFERENCES orders(order_number))";
         String createCartTable = "CREATE TABLE IF NOT EXISTS cart (username TEXT NOT NULL, event_id INTEGER NOT NULL, quantity INTEGER NOT NULL, total_price REAL NOT NULL, FOREIGN KEY (username) REFERENCES users(username), FOREIGN KEY (event_id) REFERENCES events(event_id))";
         String createIndexSql = "CREATE INDEX IF NOT EXISTS idx_cart_event_id ON cart (event_id)";
 
@@ -232,22 +232,28 @@ public class DatabaseManager {
     }
 
     public void saveUser(User user) throws SQLException {
-        String sql = "INSERT INTO users (username, password, preferred_name) VALUES (?, ?, ?)";
+        String encryptedPassword = encryptPassword(user.getPassword());
+        String sql = "INSERT INTO users (username, password, preferred_name, user_type_id) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, user.getUsername());
-            pstmt.setString(2, user.getPassword());
+            pstmt.setString(2, encryptedPassword);
             pstmt.setString(3, user.getPreferredName());
+            pstmt.setInt(4, user.getUserTypeId());
             pstmt.executeUpdate();
         }
     }
 
+    private String encryptPassword(String password) {
+        return password;
+    }
+
     public User getUser(String username) throws SQLException {
-        String sql = "SELECT * FROM users WHERE username = ?";
+        String sql = "SELECT username, password, preferred_name, user_type_id FROM users WHERE username = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return new User(rs.getString("username"), rs.getString("password"), rs.getString("preferred_name"));
+                return new User(rs.getString("username"), rs.getString("password"), rs.getString("preferred_name"), rs.getInt("user_type_id"));
             }
         }
         return null;

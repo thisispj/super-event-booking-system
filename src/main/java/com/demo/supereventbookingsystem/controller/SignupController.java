@@ -44,7 +44,7 @@ public class SignupController {
                 showTemporaryError("All fields are required.");
                 return;
             }
-            User user = new User(username, password, preferredName);
+            User user = new User(username, password, preferredName, 1); // Default to regular user (user_type_id = 1)
             DatabaseManager.getInstance().saveUser(user);
             mainController.setCurrentUser(user);
             mainController.showDashboard();
@@ -71,17 +71,13 @@ public class SignupController {
         if (errorLabel != null) {
             errorLabel.setText(errorMessage);
             errorLabel.setTextFill(Color.web("#a80000"));
-
             TranslateTransition shake = new TranslateTransition(Duration.millis(50), errorLabel);
             shake.setByX(5);
             shake.setCycleCount(6);
             shake.setAutoReverse(true);
             shake.play();
-
             PauseTransition pause = new PauseTransition(Duration.seconds(5));
-            pause.setOnFinished(e -> {
-                errorLabel.setText("");
-            });
+            pause.setOnFinished(e -> errorLabel.setText(""));
             pause.play();
         }
     }
