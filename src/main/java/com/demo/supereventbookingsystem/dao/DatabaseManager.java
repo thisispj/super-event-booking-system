@@ -96,7 +96,7 @@ public class DatabaseManager {
                     double price = Double.parseDouble(parts[3].trim());
                     int soldTickets = Integer.parseInt(parts[4].trim());
                     int totalTickets = Integer.parseInt(parts[5].trim());
-                    Event event = new Event(title, venue, day, price, soldTickets, totalTickets);
+                    Event event = new Event(0, title, venue, day, price, soldTickets, totalTickets, false);
                     events.add(event);
                 }
             }
@@ -145,27 +145,6 @@ public class DatabaseManager {
         }
     }
 
-    public List<Event> getAllEvents() throws SQLException {
-        List<Event> events = new ArrayList<>();
-        String sql = "SELECT event_id, title, venue, day, price, sold_tickets, total_tickets FROM events";
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                Event event = new Event(
-                        rs.getInt("event_id"),
-                        rs.getString("title"),
-                        rs.getString("venue"),
-                        rs.getString("day"),
-                        rs.getDouble("price"),
-                        rs.getInt("sold_tickets"),
-                        rs.getInt("total_tickets")
-                );
-                events.add(event);
-            }
-        }
-        return events;
-    }
-
     public Event getEvent(int eventId) throws SQLException {
         String sql = "SELECT * FROM events WHERE event_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -179,7 +158,8 @@ public class DatabaseManager {
                         rs.getString("day"),
                         rs.getDouble("price"),
                         rs.getInt("sold_tickets"),
-                        rs.getInt("total_tickets")
+                        rs.getInt("total_tickets"),
+                        rs.getInt("is_disabled") == 1
                 );
             }
         }
@@ -205,7 +185,7 @@ public class DatabaseManager {
     }
 
     public String validateEventDates(Cart cart) throws SQLException {
-        String currentDay = "Thu"; // Hardcoded based on system date
+        String currentDay = "Thu";
         int currentDayOrder = DAY_ORDER.getOrDefault(currentDay, 1);
 
         for (Integer eventId : cart.getItems().keySet()) {
@@ -219,7 +199,7 @@ public class DatabaseManager {
                 }
             }
         }
-        return null; // No issues
+        return null;
     }
 
     public boolean validateUser(String username, String password) throws SQLException {
@@ -309,7 +289,6 @@ public class DatabaseManager {
                 LocalDateTime dateTime = LocalDateTime.parse(rsOrders.getString("date_time"));
                 double totalPrice = rsOrders.getDouble("total_price");
 
-                // Fetch bookings for this order
                 List<Booking> bookings = new ArrayList<>();
                 String sqlBookings = "SELECT event_title, event_venue, event_day, quantity FROM bookings WHERE order_number = ?";
                 try (PreparedStatement pstmtBookings = connection.prepareStatement(sqlBookings)) {
@@ -321,13 +300,12 @@ public class DatabaseManager {
                         String eventDay = rsBookings.getString("event_day");
                         int quantity = rsBookings.getInt("quantity");
 
-                        Event event = new Event(0, eventTitle, eventVenue, eventDay, 0.0, 0, 0);
+                        Event event = new Event(0, eventTitle, eventVenue, eventDay, 0.0, 0, 0, false);
                         Booking booking = new Booking(event, quantity);
                         bookings.add(booking);
                     }
                 }
 
-                // Use the constructor that accepts totalPrice
                 Order order = new Order(orderNumber, dateTime, bookings, totalPrice);
                 orders.add(order);
             }
@@ -390,6 +368,55 @@ public class DatabaseManager {
         if (connection != null && !connection.isClosed()) {
             connection.close();
             System.out.println("Database connection closed.");
+        }
+    }
+
+    public List<Event> getEvents() throws SQLException {
+        List<Event> events = new ArrayList<>();
+        String sql = "SELECT event_id, title, venue, day, price, sold_tickets, total_tickets, is_disabled FROM events WHERE is_disabled = 0";
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                events.add(new Event(
+                        rs.getInt("event_id"),
+                        rs.getString("title"),
+                        rs.getString("venue"),
+                        rs.getString("day"),
+                        rs.getDouble("price"),
+                        rs.getInt("sold_tickets"),
+                        rs.getInt("total_tickets"),
+                        rs.getInt("is_disabled") == 1
+                ));
+            }
+        }
+        return events;
+    }
+
+    public List<Event> getAllEvents() throws SQLException {
+        List<Event> events = new ArrayList<>();
+        String sql = "SELECT event_id, title, venue, day, price, sold_tickets, total_tickets, is_disabled FROM events";
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                events.add(new Event(
+                        rs.getInt("event_id"),
+                        rs.getString("title"),
+                        rs.getString("venue"),
+                        rs.getString("day"),
+                        rs.getDouble("price"),
+                        rs.getInt("sold_tickets"),
+                        rs.getInt("total_tickets"),
+                        rs.getInt("is_disabled") == 1
+                ));
+            }
+        }
+        return events;
+    }
+
+    public void updateEventStatus(int eventId, boolean isDisabled) throws SQLException {
+        String sql = "UPDATE events SET is_disabled = ? WHERE event_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, isDisabled ? 1 : 0);
+            pstmt.setInt(2, eventId);
+            pstmt.executeUpdate();
         }
     }
 }

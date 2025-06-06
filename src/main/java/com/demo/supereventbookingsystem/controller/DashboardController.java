@@ -6,6 +6,9 @@ import com.demo.supereventbookingsystem.model.Event;
 import com.demo.supereventbookingsystem.model.User;
 import javafx.animation.PauseTransition;
 import javafx.animation.TranslateTransition;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -57,26 +60,31 @@ public class DashboardController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        System.out.println("DashboardController initialized. FXML location: " + (location != null ? location.toString() : "null"));
-        if (eventTable == null) {
-            System.err.println("eventTable is null! FXML binding failed.");
+        eventIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getEventId()).asObject());
+        titleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
+        venueColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getVenue()));
+        dayColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDay()));
+        priceColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getPrice()).asObject());
+        availableColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getTotalTickets() - cellData.getValue().getSoldTickets()).asObject());
+
+        try {
+            ObservableList<Event> eventList = FXCollections.observableArrayList(DatabaseManager.getInstance().getEvents()); // Fetches only enabled events (is_disabled = 0)
+            if (eventList.isEmpty()) {
+                System.out.println("No events found in the database.");
+            }
+            eventTable.setItems(eventList);
+        } catch (SQLException e) {
+            System.out.println("Error loading events: " + e.getMessage());
         }
 
         addToCartButton.setDisable(true);
-        quantityField.setDisable(true);
-        viewCartButton.setDisable(true);
+        eventTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            addToCartButton.setDisable(newSelection == null || quantityField.getText().isEmpty());
+        });
 
-        try {
-            DatabaseManager.getInstance().loadEventsFromFile("src/main/resources/com/demo/supereventbookingsystem/events.dat");
-        } catch (SQLException e) {
-            System.err.println("Error loading events from file: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        if (currentUser != null) {
-            loadEvents();
-            updateCartCount();
-        }
+        quantityField.textProperty().addListener((obs, oldValue, newValue) -> {
+            addToCartButton.setDisable(newValue.isEmpty() || eventTable.getSelectionModel().getSelectedItem() == null);
+        });
     }
 
     public void setMainController(MainController mainController) {

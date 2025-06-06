@@ -1,0 +1,38 @@
+.toggle-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #414141;
+    -fx-border-width: 2;
+    -fx-border-radius: 50;
+    -fx-background-radius: 50;
+    -fx-min-width: 59.5; /* 3.5em * 17px */
+    -fx-min-height: 34;   /* 2em * 17px */
+    -fx-max-width: 59.5;
+    -fx-max-height: 34;
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
+.toggle-button:selected {
+    -fx-background-color: transparent;
+    -fx-border-color: #0974f1;
+    -fx-border-width: 2;
+    -fx-alignment: center-left;
+    -fx-effect: dropshadow(gaussian, rgba(9, 117, 241, 0.8), 20, 0, 0, 0);
+}
+
+.toggle-thumb {
+    -fx-background-color: white;
+    -fx-background-radius: 50;
+    -fx-min-width: 23.8; /* 1.4em * 17px */
+    -fx-min-height: 23.8;
+    -fx-max-width: 23.8;
+    -fx-max-height: 23.8;
+    -fx-translate-x: 3.4;  /* 0.2em * 17px */
+    -fx-translate-y: 3.4;
+}
+
+.toggle-button:selected .toggle-thumb {
+    -fx-background-color: white;
+    -fx-translate-x: 25.5; /* Original position + 1.5em movement: 3.4 + (1.5 * 17) = 28.9, adjusted for visual alignment */
+    -fx-translate-y: 3.4;
+}

@@ -8,19 +8,9 @@ public class Event {
     private double price;
     private int soldTickets;
     private int totalTickets;
+    private boolean isDisabled;
 
-    // Constructor(s)
-    public Event(String title, String venue, String day, double price, int soldTickets, int totalTickets) {
-        this.eventId = 0; // Will be set by database
-        this.title = title;
-        this.venue = venue;
-        this.day = day;
-        this.price = price;
-        this.soldTickets = soldTickets;
-        this.totalTickets = totalTickets;
-    }
-
-    public Event(int eventId, String title, String venue, String day, double price, int soldTickets, int totalTickets) {
+    public Event(int eventId, String title, String venue, String day, double price, int soldTickets, int totalTickets, boolean isDisabled) {
         this.eventId = eventId;
         this.title = title;
         this.venue = venue;
@@ -28,43 +18,30 @@ public class Event {
         this.price = price;
         this.soldTickets = soldTickets;
         this.totalTickets = totalTickets;
+        this.isDisabled = isDisabled;
     }
 
-    // Getters
-    public int getEventId() {
-        return eventId;
-    }
+    public int getEventId() { return eventId; }
+    public String getTitle() { return title; }
+    public String getVenue() { return venue; }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getVenue() {
-        return venue;
-    }
-
-    public String getDay() {
-        return day;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public int getSoldTickets() {
-        return soldTickets;
-    }
-
-    public int getTotalTickets() {
-        return totalTickets;
-    }
-
-    public int getAvailableTickets() {
-        return totalTickets - soldTickets;
-    }
-
-    // Setter for eventId (used when loading from database)
     public void setEventId(int eventId) {
         this.eventId = eventId;
+    }
+
+    public String getDay() { return day; }
+    public double getPrice() { return price; }
+    public int getSoldTickets() { return soldTickets; }
+    public int getTotalTickets() { return totalTickets; }
+    public boolean isDisabled() { return isDisabled; }
+    public void setDisabled(boolean disabled) { isDisabled = disabled; }
+
+    public int getAvailableTickets() {
+        return Math.max(0, totalTickets - soldTickets); // Ensure non-negative value
+    }
+
+    @Override
+    public String toString() {
+        return title + " at " + venue + " on " + day;
     }
 }
