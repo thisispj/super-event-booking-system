@@ -53,7 +53,7 @@ public class DatabaseManager {
 
     private void createTables() throws SQLException {
         String createUsersTable = "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, preferred_name TEXT, user_type_id INTEGER DEFAULT 1, FOREIGN KEY (user_type_id) REFERENCES user_types(user_type_id))";
-        String createEventsTable = "CREATE TABLE IF NOT EXISTS events (event_id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, venue TEXT, day TEXT, price REAL, sold_tickets INTEGER, total_tickets INTEGER, is_disabled INTEGER DEFAULT 0)";
+        String createEventsTable = "CREATE TABLE IF NOT EXISTS events (event_id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, venue TEXT, day TEXT, price REAL, sold_tickets INTEGER, total_tickets INTEGER, is_disabled INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0)";
         String createOrdersTable = "CREATE TABLE IF NOT EXISTS orders (order_number TEXT PRIMARY KEY, username TEXT, date_time TEXT, total_price REAL, FOREIGN KEY (username) REFERENCES users(username))";
         String createBookingsTable = "CREATE TABLE IF NOT EXISTS bookings (order_number TEXT, event_title TEXT, event_venue TEXT, event_day TEXT, quantity INTEGER, FOREIGN KEY (order_number) REFERENCES orders(order_number))";
         String createCartTable = "CREATE TABLE IF NOT EXISTS cart (username TEXT NOT NULL, event_id INTEGER NOT NULL, quantity INTEGER NOT NULL, total_price REAL NOT NULL, FOREIGN KEY (username) REFERENCES users(username), FOREIGN KEY (event_id) REFERENCES events(event_id))";
@@ -96,7 +96,7 @@ public class DatabaseManager {
                     double price = Double.parseDouble(parts[3].trim());
                     int soldTickets = Integer.parseInt(parts[4].trim());
                     int totalTickets = Integer.parseInt(parts[5].trim());
-                    Event event = new Event(0, title, venue, day, price, soldTickets, totalTickets, false);
+                    Event event = new Event(0, title, venue, day, price, soldTickets, totalTickets, false, false);
                     events.add(event);
                 }
             }
@@ -107,15 +107,12 @@ public class DatabaseManager {
         return events;
     }
 
-    private boolean eventExists(Event event) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM events WHERE title = ? AND venue = ? AND day = ? AND price = ? AND sold_tickets = ? AND total_tickets = ?";
+    public boolean eventExists(Event event) throws SQLException { // Changed to public
+        String sql = "SELECT COUNT(*) FROM events WHERE title = ? AND venue = ? AND day = ? AND is_deleted = 0";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, event.getTitle());
             pstmt.setString(2, event.getVenue());
             pstmt.setString(3, event.getDay());
-            pstmt.setDouble(4, event.getPrice());
-            pstmt.setInt(5, event.getSoldTickets());
-            pstmt.setInt(6, event.getTotalTickets());
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1) > 0;
@@ -126,7 +123,7 @@ public class DatabaseManager {
 
     public void insertEvent(Event event) throws SQLException {
         if (!eventExists(event)) {
-            String sql = "INSERT INTO events (title, venue, day, price, sold_tickets, total_tickets) VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO events (title, venue, day, price, sold_tickets, total_tickets, is_disabled, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 pstmt.setString(1, event.getTitle());
                 pstmt.setString(2, event.getVenue());
@@ -134,6 +131,8 @@ public class DatabaseManager {
                 pstmt.setDouble(4, event.getPrice());
                 pstmt.setInt(5, event.getSoldTickets());
                 pstmt.setInt(6, event.getTotalTickets());
+                pstmt.setInt(7, event.isDisabled() ? 1 : 0);
+                pstmt.setInt(8, event.isDeleted() ? 1 : 0);
                 pstmt.executeUpdate();
 
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -146,7 +145,7 @@ public class DatabaseManager {
     }
 
     public Event getEvent(int eventId) throws SQLException {
-        String sql = "SELECT * FROM events WHERE event_id = ?";
+        String sql = "SELECT * FROM events WHERE event_id = ? AND is_deleted = 0";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, eventId);
             ResultSet rs = pstmt.executeQuery();
@@ -159,7 +158,8 @@ public class DatabaseManager {
                         rs.getDouble("price"),
                         rs.getInt("sold_tickets"),
                         rs.getInt("total_tickets"),
-                        rs.getInt("is_disabled") == 1
+                        rs.getInt("is_disabled") == 1,
+                        rs.getInt("is_deleted") == 1
                 );
             }
         }
@@ -167,7 +167,7 @@ public class DatabaseManager {
     }
 
     public void updateEventTickets(Event event, int additionalTickets) throws SQLException {
-        String sql = "UPDATE events SET sold_tickets = sold_tickets + ? WHERE event_id = ?";
+        String sql = "UPDATE events SET sold_tickets = sold_tickets + ? WHERE event_id = ? AND is_deleted = 0";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, additionalTickets);
             pstmt.setInt(2, event.getEventId());
@@ -185,7 +185,7 @@ public class DatabaseManager {
     }
 
     public String validateEventDates(Cart cart) throws SQLException {
-        String currentDay = "Thu";
+        String currentDay = "Sat"; // Updated to current date (June 07, 2025, 09:03 PM AEST)
         int currentDayOrder = DAY_ORDER.getOrDefault(currentDay, 1);
 
         for (Integer eventId : cart.getItems().keySet()) {
@@ -199,7 +199,7 @@ public class DatabaseManager {
                 }
             }
         }
-        return null;
+        return null; // No issues
     }
 
     public boolean validateUser(String username, String password) throws SQLException {
@@ -300,7 +300,7 @@ public class DatabaseManager {
                         String eventDay = rsBookings.getString("event_day");
                         int quantity = rsBookings.getInt("quantity");
 
-                        Event event = new Event(0, eventTitle, eventVenue, eventDay, 0.0, 0, 0, false);
+                        Event event = new Event(0, eventTitle, eventVenue, eventDay, 0.0, 0, 0, false, false);
                         Booking booking = new Booking(event, quantity);
                         bookings.add(booking);
                     }
@@ -373,7 +373,7 @@ public class DatabaseManager {
 
     public List<Event> getEvents() throws SQLException {
         List<Event> events = new ArrayList<>();
-        String sql = "SELECT event_id, title, venue, day, price, sold_tickets, total_tickets, is_disabled FROM events WHERE is_disabled = 0";
+        String sql = "SELECT event_id, title, venue, day, price, sold_tickets, total_tickets, is_disabled, is_deleted FROM events WHERE is_disabled = 0 AND is_deleted = 0";
         try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 events.add(new Event(
@@ -384,7 +384,8 @@ public class DatabaseManager {
                         rs.getDouble("price"),
                         rs.getInt("sold_tickets"),
                         rs.getInt("total_tickets"),
-                        rs.getInt("is_disabled") == 1
+                        rs.getInt("is_disabled") == 1,
+                        rs.getInt("is_deleted") == 1
                 ));
             }
         }
@@ -393,7 +394,7 @@ public class DatabaseManager {
 
     public List<Event> getAllEvents() throws SQLException {
         List<Event> events = new ArrayList<>();
-        String sql = "SELECT event_id, title, venue, day, price, sold_tickets, total_tickets, is_disabled FROM events";
+        String sql = "SELECT event_id, title, venue, day, price, sold_tickets, total_tickets, is_disabled, is_deleted FROM events WHERE is_deleted = 0";
         try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 events.add(new Event(
@@ -404,7 +405,8 @@ public class DatabaseManager {
                         rs.getDouble("price"),
                         rs.getInt("sold_tickets"),
                         rs.getInt("total_tickets"),
-                        rs.getInt("is_disabled") == 1
+                        rs.getInt("is_disabled") == 1,
+                        rs.getInt("is_deleted") == 1
                 ));
             }
         }
@@ -412,11 +414,22 @@ public class DatabaseManager {
     }
 
     public void updateEventStatus(int eventId, boolean isDisabled) throws SQLException {
-        String sql = "UPDATE events SET is_disabled = ? WHERE event_id = ?";
+        String sql = "UPDATE events SET is_disabled = ? WHERE event_id = ? AND is_deleted = 0";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, isDisabled ? 1 : 0);
             pstmt.setInt(2, eventId);
             pstmt.executeUpdate();
+        }
+    }
+
+    public void softDeleteEvent(int eventId) throws SQLException {
+        String sql = "UPDATE events SET is_deleted = 1 WHERE event_id = ? AND is_deleted = 0";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, eventId);
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Event not found or already deleted.");
+            }
         }
     }
 }

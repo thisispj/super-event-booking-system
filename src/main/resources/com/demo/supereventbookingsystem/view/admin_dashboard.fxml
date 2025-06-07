@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -11,8 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<?import javafx.scene.control.Tooltip?>
-<VBox alignment="CENTER" prefHeight="832.0" prefWidth="1041.0" spacing="10" style="-fx-background-color: #E1EBEE;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17.0.6" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.demo.supereventbookingsystem.controller.AdminDashboardController">
+<VBox alignment="CENTER" prefHeight="830.0" prefWidth="830.0" spacing="10" style="-fx-background-color: #E1EBEE;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.demo.supereventbookingsystem.controller.AdminDashboardController">
     <padding>
         <Insets bottom="20" left="20" right="20" top="20" />
     </padding>
@@ -28,16 +29,16 @@
             <Label fx:id="availableEventsLabel" text="Available Events:" textFill="#011f5b" translateX="10.0" />
         </children>
     </HBox>
-    <GridPane alignment="CENTER_LEFT" prefHeight="579.0" prefWidth="1001.0">
+    <GridPane alignment="CENTER_LEFT" prefHeight="566.0" prefWidth="1092.0">
         <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" maxWidth="1137.0" minWidth="10.0" prefWidth="752.0" />
-            <ColumnConstraints hgrow="SOMETIMES" maxWidth="569.0" minWidth="10.0" prefWidth="249.0" />
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="1137.0" minWidth="10.0" prefWidth="671.0" />
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="569.0" minWidth="10.0" prefWidth="489.0" />
         </columnConstraints>
         <rowConstraints>
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
         <children>
-            <VBox alignment="TOP_CENTER" maxHeight="589.0" maxWidth="250.0" prefHeight="517.0" prefWidth="249.0" style="-fx-border-color: #B0C4DE; -fx-border-radius: 0;" GridPane.columnIndex="1">
+            <VBox alignment="TOP_CENTER" maxHeight="589.0" maxWidth="428.0" prefHeight="565.0" prefWidth="428.0" style="-fx-border-color: #B0C4DE; -fx-border-radius: 0;" GridPane.columnIndex="1">
                 <children>
                     <Label alignment="CENTER" prefHeight="17.0" prefWidth="368.0" style="-fx-translate-x: 0; -fx-translate-y: 20; -fx-font-weight: bold;" text="Modify Events" textFill="#011f5b">
                         <font>
@@ -89,7 +90,7 @@
                     </Button>
                 </children>
             </VBox>
-            <TreeView fx:id="eventTreeView" prefHeight="517.0" prefWidth="752.0" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
+            <TreeView fx:id="eventTreeView" prefHeight="565.0" prefWidth="683.0" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
         </children>
     </GridPane>
     <Separator prefWidth="200.0" />

@@ -4,11 +4,17 @@ import com.demo.supereventbookingsystem.dao.DatabaseManager;
 import com.demo.supereventbookingsystem.model.Event;
 import com.demo.supereventbookingsystem.model.User;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.List;
@@ -38,10 +44,19 @@ public class AdminDashboardController implements Initializable {
 
     private MainController mainController;
     private User currentUser;
+    private Event selectedEvent;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        editEventButton.setDisable(true);
+        deleteEventButton.setDisable(true);
         populateEventTreeView();
+        eventTreeView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            selectedEvent = (newVal != null && !newVal.isLeaf()) ? null : getSelectedEvent(newVal);
+            editEventButton.setDisable(selectedEvent == null);
+            deleteEventButton.setDisable(selectedEvent == null);
+            selectedEventLabel.setText(selectedEvent != null ? selectedEvent.toString() : "None");
+        });
     }
 
     public void setMainController(MainController mainController) {
@@ -73,12 +88,26 @@ public class AdminDashboardController implements Initializable {
 
                 for (Event event : eventList) {
                     HBox eventBox = new HBox();
+                    eventBox.setUserData(event); // Store the Event in the HBox
                     Text eventText = new Text(event.getVenue() + " - " + event.getDay());
                     if (event.isDisabled()) {
                         eventText.setStyle("-fx-fill: #868686;"); // Gray out disabled events
                     }
 
-                    CheckBox checkBox = getCheckBox(event, eventText);
+                    CheckBox checkBox = new CheckBox();
+                    checkBox.setSelected(!event.isDisabled()); // Checked means enabled
+                    checkBox.setTooltip(new Tooltip("Click to enable or disable the event"));
+                    checkBox.setOnAction(e -> {
+                        boolean newStatus = !checkBox.isSelected(); // Unchecked means disabled
+                        try {
+                            DatabaseManager.getInstance().updateEventStatus(event.getEventId(), newStatus);
+                            event.setDisabled(newStatus);
+                            eventText.setStyle(newStatus ? "-fx-fill: #868686;" : "");
+                            eventTreeView.refresh();
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                        }
+                    });
 
                     eventBox.getChildren().addAll(eventText, checkBox);
                     eventBox.setSpacing(10);
@@ -95,22 +124,14 @@ public class AdminDashboardController implements Initializable {
         }
     }
 
-    private CheckBox getCheckBox(Event event, Text eventText) {
-        CheckBox checkBox = new CheckBox();
-        checkBox.setSelected(!event.isDisabled()); // Checked means enabled
-        checkBox.setTooltip(new Tooltip("Click to enable or disable the event"));
-        checkBox.setOnAction(e -> {
-            boolean newStatus = !checkBox.isSelected(); // Unchecked means disabled
-            try {
-                DatabaseManager.getInstance().updateEventStatus(event.getEventId(), newStatus);
-                event.setDisabled(newStatus);
-                eventText.setStyle(newStatus ? "-fx-fill: #868686;" : "");
-                eventTreeView.refresh();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
-        return checkBox;
+    private Event getSelectedEvent(TreeItem<HBox> item) {
+        if (item != null && !item.isLeaf() && item.getValue() != null) {
+            return null; // Return null for parent nodes (titles)
+        }
+        if (item != null && item.getValue() != null && item.getValue().getUserData() instanceof Event) {
+            return (Event) item.getValue().getUserData(); // Retrieve the Event from the HBox
+        }
+        return null;
     }
 
     @FXML
@@ -120,12 +141,76 @@ public class AdminDashboardController implements Initializable {
 
     @FXML
     private void handleDeleteEvent() {
-        // To be implemented later
+        if (selectedEvent != null) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirm Delete");
+            alert.setHeaderText("Are you sure you want to delete the Event: {" + selectedEvent.getEventId() + ": " + selectedEvent.getTitle() + " at " + selectedEvent.getVenue() + " on " + selectedEvent.getDay() + "}");
+            alert.setContentText("This will soft delete the event. Click 'Delete' to proceed or 'Cancel' to abort.");
+
+            ButtonType deleteButton = new ButtonType("Delete");
+            ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+            alert.getButtonTypes().setAll(deleteButton, cancelButton);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == deleteButton) {
+                    try {
+                        DatabaseManager.getInstance().softDeleteEvent(selectedEvent.getEventId());
+                        populateEventTreeView(); // Repopulate to reflect the change
+                        selectedEvent = null;
+                        editEventButton.setDisable(true);
+                        deleteEventButton.setDisable(true);
+                        selectedEventLabel.setText("None");
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                        errorAlert.setTitle("Deletion Failed");
+                        errorAlert.setHeaderText("Could not delete the event.");
+                        errorAlert.setContentText("An error occurred: " + e.getMessage());
+                        errorAlert.showAndWait();
+                    }
+                }
+            });
+        }
     }
 
     @FXML
     private void handleAddEvent() {
-        // To be implemented later
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/addevent.fxml"));
+            // Do not set controller programmatically to avoid conflict with FXML
+            Parent root = loader.load();
+            Object controller = loader.getController();
+            AddEventController addEventController;
+            if (controller instanceof AddEventController) {
+                addEventController = (AddEventController) controller;
+            } else {
+                throw new IllegalStateException("Loaded controller is not an instance of AddEventController: " + controller.getClass().getName());
+            }
+            addEventController.setMainController(mainController); // Pass the existing mainController
+            addEventController.setCurrentUser(currentUser);
+
+            // Create a new stage for the modal window
+            Stage addEventStage = new Stage();
+            addEventStage.initModality(Modality.WINDOW_MODAL);
+            addEventStage.initOwner(eventTreeView.getScene().getWindow()); // Set Admin Dashboard as owner
+            addEventStage.setScene(new Scene(root));
+            addEventStage.setTitle("Add Event");
+            addEventStage.showAndWait(); // Blocks until the window is closed
+        } catch (IOException e) {
+            e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText("Could not load Add Event scene.");
+            errorAlert.setContentText("An error occurred: " + e.getMessage());
+            errorAlert.showAndWait();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Controller Error");
+            errorAlert.setHeaderText("Incompatible controller loaded for Add Event scene.");
+            errorAlert.setContentText("An error occurred: " + e.getMessage());
+            errorAlert.showAndWait();
+        }
     }
 
     @FXML

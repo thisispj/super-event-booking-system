@@ -9,8 +9,13 @@ public class Event {
     private int soldTickets;
     private int totalTickets;
     private boolean isDisabled;
+    private boolean isDeleted;
 
-    public Event(int eventId, String title, String venue, String day, double price, int soldTickets, int totalTickets, boolean isDisabled) {
+    public void setEventId(int eventId) {
+        this.eventId = eventId;
+    }
+
+    public Event(int eventId, String title, String venue, String day, double price, int soldTickets, int totalTickets, boolean isDisabled, boolean isDeleted) {
         this.eventId = eventId;
         this.title = title;
         this.venue = venue;
@@ -19,22 +24,20 @@ public class Event {
         this.soldTickets = soldTickets;
         this.totalTickets = totalTickets;
         this.isDisabled = isDisabled;
+        this.isDeleted = isDeleted;
     }
 
     public int getEventId() { return eventId; }
     public String getTitle() { return title; }
     public String getVenue() { return venue; }
-
-    public void setEventId(int eventId) {
-        this.eventId = eventId;
-    }
-
     public String getDay() { return day; }
     public double getPrice() { return price; }
     public int getSoldTickets() { return soldTickets; }
     public int getTotalTickets() { return totalTickets; }
     public boolean isDisabled() { return isDisabled; }
     public void setDisabled(boolean disabled) { isDisabled = disabled; }
+    public boolean isDeleted() { return isDeleted; }
+    public void setDeleted(boolean deleted) { isDeleted = deleted; }
 
     public int getAvailableTickets() {
         return Math.max(0, totalTickets - soldTickets); // Ensure non-negative value
