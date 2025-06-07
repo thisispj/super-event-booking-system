@@ -432,4 +432,68 @@ public class DatabaseManager {
             }
         }
     }
+
+    public void updateEvent(Event event) throws SQLException {
+        String sql = "UPDATE events SET title = ?, venue = ?, day = ?, price = ?, sold_tickets = ?, total_tickets = ?, is_disabled = ?, is_deleted = ? WHERE event_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, event.getTitle());
+            pstmt.setString(2, event.getVenue());
+            pstmt.setString(3, event.getDay());
+            pstmt.setDouble(4, event.getPrice());
+            pstmt.setInt(6, event.getSoldTickets());
+            pstmt.setInt(6, event.getTotalTickets());
+            pstmt.setBoolean(7, event.isDisabled());
+            pstmt.setBoolean(8, event.isDeleted());
+            pstmt.setInt(9, event.getEventId());
+
+            // Execute update
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("No rows updated. Event ID " + event.getEventId() + " may not exist.");
+            }
+        } catch (SQLException e) {
+            // Log the error (assuming a logger is available, e.g., java.util.logging)
+            System.err.println("SQL Error while updating event: " + e.getMessage());
+            e.printStackTrace();
+            throw e; // Re-throw to be handled by the caller
+        } catch (Exception e) {
+            // Handle unexpected exceptions (e.g., null pointer if event is invalid)
+            System.err.println("Unexpected error while updating event: " + e.getMessage());
+            e.printStackTrace();
+            throw new SQLException("Unexpected error during event update: " + e.getMessage(), e);
+        }
+    }
+
+    public Event getEventById(int eventId) throws SQLException {
+        String sql = "SELECT * FROM events WHERE event_id = ? AND is_deleted = 0";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, eventId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Event(
+                            rs.getInt("event_id"),
+                            rs.getString("title"),
+                            rs.getString("venue"),
+                            rs.getString("day"),
+                            rs.getDouble("price"),
+                            rs.getInt("sold_tickets"),
+                            rs.getInt("total_tickets"),
+                            rs.getBoolean("is_disabled"),
+                            rs.getBoolean("is_deleted")
+                    );
+                }
+                return null; // Event not found or deleted
+            }
+        } catch (SQLException e) {
+            // Log SQL-related errors (e.g., connection failure, invalid query)
+            System.err.println("SQL Error while fetching event with ID " + eventId + ": " + e.getMessage());
+            e.printStackTrace();
+            throw e; // Re-throw to be handled by the caller
+        } catch (Exception e) {
+            // Handle unexpected exceptions (e.g., DriverManager issues, resource initialization)
+            System.err.println("Unexpected error while fetching event with ID " + eventId + ": " + e.getMessage());
+            e.printStackTrace();
+            throw new SQLException("Unexpected error while fetching event: " + e.getMessage(), e);
+        }
+    }
 }

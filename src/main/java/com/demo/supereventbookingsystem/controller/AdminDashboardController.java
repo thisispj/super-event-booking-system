@@ -66,7 +66,7 @@ public class AdminDashboardController implements Initializable {
     public void setCurrentUser(User user) {
         this.currentUser = user;
         if (welcomeLabel != null) {
-            welcomeLabel.setText("Welcome Admin, " + (user != null ? user.getPreferredName() : "") + "!");
+            welcomeLabel.setText("Welcome " + (user != null ? user.getPreferredName() : "") + "!");
         }
     }
 
@@ -124,6 +124,10 @@ public class AdminDashboardController implements Initializable {
         }
     }
 
+    public void refreshEventTreeView() {
+        populateEventTreeView();
+    }
+
     private Event getSelectedEvent(TreeItem<HBox> item) {
         if (item != null && !item.isLeaf() && item.getValue() != null) {
             return null; // Return null for parent nodes (titles)
@@ -136,7 +140,44 @@ public class AdminDashboardController implements Initializable {
 
     @FXML
     private void handleEditEvent() {
-        // To be implemented later
+        if (selectedEvent == null) return;
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/editevent.fxml"));
+            Parent root = loader.load();
+            Object controller = loader.getController();
+            EditEventController editEventController;
+            if (controller instanceof EditEventController) {
+                editEventController = (EditEventController) controller;
+            } else {
+                throw new IllegalStateException("Loaded controller is not an instance of EditEventController: " + controller.getClass().getName());
+            }
+            editEventController.setMainController(mainController);
+            editEventController.setCurrentUser(currentUser);
+            editEventController.setSelectedEvent(selectedEvent);
+
+            Stage editEventStage = new Stage();
+            editEventStage.initModality(Modality.WINDOW_MODAL);
+            editEventStage.initOwner(eventTreeView.getScene().getWindow());
+            editEventStage.setScene(new Scene(root));
+            editEventStage.setTitle("Edit Event");
+            editEventStage.showAndWait();
+            // Repopulate TreeView after modal closes
+            refreshEventTreeView();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText("Could not load Edit Event scene.");
+            errorAlert.setContentText("An error occurred: " + e.getMessage());
+            errorAlert.showAndWait();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Controller Error");
+            errorAlert.setHeaderText("Incompatible controller loaded for Edit Event scene.");
+            errorAlert.setContentText("An error occurred: " + e.getMessage());
+            errorAlert.showAndWait();
+        }
     }
 
     @FXML
@@ -177,7 +218,6 @@ public class AdminDashboardController implements Initializable {
     private void handleAddEvent() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/addevent.fxml"));
-            // Do not set controller programmatically to avoid conflict with FXML
             Parent root = loader.load();
             Object controller = loader.getController();
             AddEventController addEventController;
@@ -186,16 +226,17 @@ public class AdminDashboardController implements Initializable {
             } else {
                 throw new IllegalStateException("Loaded controller is not an instance of AddEventController: " + controller.getClass().getName());
             }
-            addEventController.setMainController(mainController); // Pass the existing mainController
+            addEventController.setMainController(mainController);
             addEventController.setCurrentUser(currentUser);
 
-            // Create a new stage for the modal window
             Stage addEventStage = new Stage();
             addEventStage.initModality(Modality.WINDOW_MODAL);
-            addEventStage.initOwner(eventTreeView.getScene().getWindow()); // Set Admin Dashboard as owner
+            addEventStage.initOwner(eventTreeView.getScene().getWindow());
             addEventStage.setScene(new Scene(root));
             addEventStage.setTitle("Add Event");
-            addEventStage.showAndWait(); // Blocks until the window is closed
+            addEventStage.showAndWait();
+            // Repopulate TreeView after modal closes
+            refreshEventTreeView();
         } catch (IOException e) {
             e.printStackTrace();
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);

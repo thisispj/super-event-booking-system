@@ -46,8 +46,8 @@ public class AddEventController {
 
     @FXML
     private void handleBack() {
-        Stage stage = (Stage) cancelButton.getScene().getWindow(); // Get the current stage
-        stage.close(); // Close the modal window
+        Stage stage = (Stage) cancelButton.getScene().getWindow();
+        stage.close();
     }
 
     @FXML
@@ -66,28 +66,29 @@ public class AddEventController {
         try {
             double price = Double.parseDouble(priceText);
             int capacity = Integer.parseInt(capacityText);
-            if (price < 0 || capacity <= 0) {
-                showAlert("Error", "Price must be non-negative and capacity must be positive.");
+            if (price < 0) {
+                showAlert("Error", "Price must be non-negative.");
+                return;
+            }
+            if (capacity <= 0) {
+                showAlert("Error", "Capacity must be positive.");
                 return;
             }
 
-            // Check for duplicates
             Event newEvent = new Event(0, eventName, venueName, day, price, 0, capacity, false, false);
             if (DatabaseManager.getInstance().eventExists(newEvent)) {
                 showAlert("Error", "An event with the same name, venue, and day already exists.");
                 return;
             }
-
-            // Save the event
             DatabaseManager.getInstance().insertEvent(newEvent);
             showAlert("Success", "Event added successfully!");
-            Stage stage = (Stage) addEventButton.getScene().getWindow(); // Get the current stage
-            stage.close(); // Close the modal window
+            Stage stage = (Stage) addEventButton.getScene().getWindow();
+            stage.close();
         } catch (NumberFormatException e) {
             showAlert("Error", "Price and capacity must be valid numbers.");
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert("Error", "Failed to add event: " + e.getMessage());
+            showAlert("Error", "Failed to save event: " + e.getMessage());
         }
     }
 
