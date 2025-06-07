@@ -26,6 +26,8 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DashboardController implements Initializable {
     @FXML
@@ -60,6 +62,7 @@ public class DashboardController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Set up column value factories
         eventIdColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getEventId()).asObject());
         titleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTitle()));
         venueColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getVenue()));
@@ -67,16 +70,10 @@ public class DashboardController implements Initializable {
         priceColumn.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getPrice()).asObject());
         availableColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getTotalTickets() - cellData.getValue().getSoldTickets()).asObject());
 
-        try {
-            ObservableList<Event> eventList = FXCollections.observableArrayList(DatabaseManager.getInstance().getEvents()); // Fetches only enabled events (is_disabled = 0)
-            if (eventList.isEmpty()) {
-                System.out.println("No events found in the database.");
-            }
-            eventTable.setItems(eventList);
-        } catch (SQLException e) {
-            System.out.println("Error loading events: " + e.getMessage());
-        }
+        // Load events
+        loadEvents();
 
+        // Initial button and field disablement
         addToCartButton.setDisable(true);
         eventTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             addToCartButton.setDisable(newSelection == null || quantityField.getText().isEmpty());
@@ -104,16 +101,27 @@ public class DashboardController implements Initializable {
         try {
             System.out.println("Loading events for TableView...");
             List<Event> allEvents = DatabaseManager.getInstance().getAllEvents();
-            ObservableList<Event> events = FXCollections.observableArrayList(allEvents);
-            System.out.println("Loaded " + events.size() + " events.");
+            // Filter out disabled events
+            ObservableList<Event> events = FXCollections.observableArrayList(allEvents.stream()
+                    .filter(event -> !event.isDisabled())
+                    .collect(Collectors.toList()));
+            System.out.println("Loaded " + events.size() + " enabled events.");
 
-            if (eventTable == null || eventIdColumn == null || titleColumn == null || venueColumn == null || dayColumn == null || priceColumn == null || availableColumn == null) {
+            if (eventTable == null || eventIdColumn == null || titleColumn == null || venueColumn == null ||
+                    dayColumn == null || priceColumn == null || availableColumn == null) {
                 System.err.println("FXML binding error: One or more UI components are null!");
                 showTemporaryError("Error: TableView not initialized properly.");
                 return;
             }
 
-            eventIdColumn.setCellFactory(column -> new TableCell<Event, Integer>() {
+            // Set cell factories
+            setColumnTextFactory(eventIdColumn, event -> String.valueOf(event.getEventId()));
+            setColumnTextFactory(titleColumn, Event::getTitle);
+            setColumnTextFactory(venueColumn, Event::getVenue);
+            setColumnTextFactory(dayColumn, Event::getDay);
+            setColumnTextFactory(priceColumn, event -> String.format("%.2f", event.getPrice()));
+
+            availableColumn.setCellFactory(column -> new TableCell<>() {
                 @Override
                 protected void updateItem(Integer item, boolean empty) {
                     super.updateItem(item, empty);
@@ -121,125 +129,52 @@ public class DashboardController implements Initializable {
                         setText(null);
                     } else {
                         Event event = getTableRow().getItem();
-                        setText(String.valueOf(event.getEventId()));
-                        setTextFill(Color.BLACK);
-                        System.out.println("Event ID cell: " + event.getEventId());
-                    }
-                }
-            });
-
-            titleColumn.setCellFactory(column -> new TableCell<Event, String>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || getTableRow() == null || getTableRow().getItem() == null) {
-                        setText(null);
-                    } else {
-                        Event event = getTableRow().getItem();
-                        setText(event.getTitle());
-                        setTextFill(Color.BLACK);
-                        System.out.println("Title cell: " + event.getTitle());
-                    }
-                }
-            });
-
-            venueColumn.setCellFactory(column -> new TableCell<Event, String>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || getTableRow() == null || getTableRow().getItem() == null) {
-                        setText(null);
-                    } else {
-                        Event event = getTableRow().getItem();
-                        setText(event.getVenue());
-                        setTextFill(Color.BLACK);
-                        System.out.println("Venue cell: " + event.getVenue());
-                    }
-                }
-            });
-
-            dayColumn.setCellFactory(column -> new TableCell<Event, String>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || getTableRow() == null || getTableRow().getItem() == null) {
-                        setText(null);
-                    } else {
-                        Event event = getTableRow().getItem();
-                        setText(event.getDay());
-                        setTextFill(Color.BLACK);
-                        System.out.println("Day cell: " + event.getDay());
-                    }
-                }
-            });
-
-            priceColumn.setCellFactory(column -> new TableCell<Event, Double>() {
-                @Override
-                protected void updateItem(Double item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || getTableRow() == null || getTableRow().getItem() == null) {
-                        setText(null);
-                    } else {
-                        Event event = getTableRow().getItem();
-                        setText(String.format("%.2f", event.getPrice()));
-                        setTextFill(Color.BLACK);
-                        System.out.println("Price cell: " + event.getPrice());
-                    }
-                }
-            });
-
-            availableColumn.setCellFactory(column -> new TableCell<Event, Integer>() {
-                @Override
-                protected void updateItem(Integer item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || getTableRow() == null || getTableRow().getItem() == null) {
-                        setText(null);
-                    } else {
-                        Event event = getTableRow().getItem();
-                        int availableTickets = event.getAvailableTickets();
-                        if (availableTickets == 0) {
-                            setText("Sold Out");
-                            setTextFill(Color.web("#F08080"));
-                        } else {
-                            setText(String.valueOf(availableTickets));
-                            setTextFill(Color.BLACK);
-                        }
-                        System.out.println("Available cell: " + (availableTickets == 0 ? "Sold Out" : availableTickets));
+                        int available = event.getAvailableTickets();
+                        setText(available == 0 ? "Sold Out" : String.valueOf(available));
+                        setTextFill(available == 0 ? Color.web("#F08080") : Color.BLACK);
+                        System.out.println("Available cell: " + (available == 0 ? "Sold Out" : available));
                     }
                 }
             });
 
             eventTable.setItems(events);
             eventTable.refresh();
-            System.out.println("TableView populated with " + eventTable.getItems().size() + " items.");
+            availableEventsLabel.setText(events.isEmpty() ? "No events available." : "Available Events: " + events.size());
 
-            if (events.isEmpty()) {
-                availableEventsLabel.setText("No events available.");
-            } else {
-                availableEventsLabel.setText("Available Events: " + events.size());
-            }
-
-            eventTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-                if (newSelection != null) {
-                    int availableTickets = newSelection.getAvailableTickets();
-                    addToCartButton.setDisable(availableTickets <= 0);
-                    quantityField.setDisable(availableTickets <= 0);
-                } else {
-                    addToCartButton.setDisable(true);
-                    quantityField.setDisable(true);
-                }
+            // Toggle cart controls based on selection
+            eventTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
+                boolean disable = (newSel == null || newSel.getAvailableTickets() <= 0);
+                addToCartButton.setDisable(disable);
+                quantityField.setDisable(disable);
             });
 
-            events.forEach(event -> System.out.println("Event: " + event.getTitle() + ", Venue: " + event.getVenue() + ", Day: " + event.getDay() + ", Price: " + event.getPrice() + ", Available: " + event.getAvailableTickets()));
+            // Optional: log loaded events
+            events.forEach(event -> System.out.printf("Event: %s, Venue: %s, Day: %s, Price: %.2f, Available: %d%n",
+                    event.getTitle(), event.getVenue(), event.getDay(), event.getPrice(), event.getAvailableTickets()));
+
         } catch (SQLException e) {
             showTemporaryError("Database error: " + e.getMessage());
-            System.err.println("SQLException in loadEvents: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
-            showTemporaryError("Database error: " + e.getMessage());
-            System.err.println("Unexpected error in loadEvents: " + e.getMessage());
+            showTemporaryError("Unexpected error: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private <T> void setColumnTextFactory(TableColumn<Event, T> column, Function<Event, String> textProvider) {
+        column.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setText(null);
+                } else {
+                    Event event = getTableRow().getItem();
+                    setText(textProvider.apply(event));
+                    setTextFill(Color.BLACK);
+                }
+            }
+        });
     }
 
     @FXML
