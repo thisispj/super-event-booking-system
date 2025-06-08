@@ -43,6 +43,14 @@ public class Event {
         return Math.max(0, totalTickets - soldTickets); // Ensure non-negative value
     }
 
+    public boolean isAvailable(int requestedTickets) {
+        if (isDeleted || isDisabled) {
+            return false;
+        }
+        int remainingTickets = totalTickets - soldTickets;
+        return requestedTickets > 0 && requestedTickets <= remainingTickets;
+    }
+
     @Override
     public String toString() {
         return title + " at " + venue + " on " + day;

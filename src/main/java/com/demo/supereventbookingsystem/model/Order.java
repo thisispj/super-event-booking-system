@@ -26,7 +26,7 @@ public class Order {
         this.totalPrice = totalPrice; // Use the value from the database
     }
 
-    private double calculateTotalPrice() {
+    double calculateTotalPrice() {
         return bookings.stream()
                 .mapToDouble(booking -> booking.getEvent().getPrice() * booking.getQuantity())
                 .sum();

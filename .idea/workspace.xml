@@ -5,14 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="17e15133-6b27-4888-9be0-ad34672b89c4" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/ChangePasswordController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/sqlite-jdbc-3.49.1.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/README.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/com/demo/supereventbookingsystem/dao/DatabaseManagerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/com/demo/supereventbookingsystem/model/EventTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/com/demo/supereventbookingsystem/model/OrderTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/events.db" beforeDir="false" afterPath="$PROJECT_DIR$/events.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/AdminDashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/AdminDashboardController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/DashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/DashboardController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/MainController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/dao/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/dao/DatabaseManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/dashboard.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/dashboard.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/ChangePasswordController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/ChangePasswordController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/CheckoutController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/CheckoutController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/OrdersController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/controller/OrdersController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Event.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Event.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem/model/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/userorders.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view/userorders.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,6 +29,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="JUnit4 Test Class" />
         <option value="Class" />
       </list>
     </option>
@@ -52,29 +60,131 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.Main.executor": "Run",
+    "JUnit.DatabaseManagerTest.executor": "Run",
+    "JUnit.DatabaseManagerTest.testEncryptPassword_EmptyPassword.executor": "Run",
+    "JUnit.EventTest.executor": "Run",
+    "JUnit.OrderTest.executor": "Run",
+    "JUnit.UserTest.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit4",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit4": "",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/akshay.panikulamjoy/Documents/RMIT Master of IT/Semester 2/Advanced Programming/Assignment 2/SuperEventBookingSystem/src/main/resources/com/demo/supereventbookingsystem",
+    "last_opened_file_path": "/Users/akshay.panikulamjoy/Documents/RMIT Master of IT/Semester 2/Advanced Programming/Assignment 2/SuperEventBookingSystem/lib",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "project.structure.last.edited": "Libraries",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.17356321",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.28735632",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/lib" />
       <recent name="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/java/com/demo/supereventbookingsystem" />
       <recent name="$PROJECT_DIR$/src/main/resources/com/demo/supereventbookingsystem/view" />
     </key>
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="" />
+    </key>
+    <key name="CreateTestDialog.RecentsKey">
+      <recent name="com.demo.supereventbookingsystem.dao" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="DatabaseManagerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="SuperEventBookingSystem" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.demo.supereventbookingsystem.dao.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.demo.supereventbookingsystem.dao" />
+      <option name="MAIN_CLASS_NAME" value="com.demo.supereventbookingsystem.dao.DatabaseManagerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="DatabaseManagerTest.testEncryptPassword_EmptyPassword" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="SuperEventBookingSystem" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.demo.supereventbookingsystem.dao.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.demo.supereventbookingsystem.dao" />
+      <option name="MAIN_CLASS_NAME" value="com.demo.supereventbookingsystem.dao.DatabaseManagerTest" />
+      <option name="METHOD_NAME" value="testEncryptPassword_EmptyPassword" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="EventTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="SuperEventBookingSystem" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.demo.supereventbookingsystem.model.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.demo.supereventbookingsystem.model" />
+      <option name="MAIN_CLASS_NAME" value="com.demo.supereventbookingsystem.model.EventTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OrderTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="SuperEventBookingSystem" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.demo.supereventbookingsystem.model.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.demo.supereventbookingsystem.model" />
+      <option name="MAIN_CLASS_NAME" value="com.demo.supereventbookingsystem.model.OrderTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="UserTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="SuperEventBookingSystem" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.demo.supereventbookingsystem.model.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.demo.supereventbookingsystem.model" />
+      <option name="MAIN_CLASS_NAME" value="com.demo.supereventbookingsystem.model.UserTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.DatabaseManagerTest" />
+        <item itemvalue="JUnit.OrderTest" />
+        <item itemvalue="JUnit.EventTest" />
+        <item itemvalue="JUnit.UserTest" />
+        <item itemvalue="JUnit.DatabaseManagerTest.testEncryptPassword_EmptyPassword" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -97,7 +207,7 @@
       <workItem from="1747963729283" duration="16179000" />
       <workItem from="1748780646865" duration="686000" />
       <workItem from="1748917784047" duration="49392000" />
-      <workItem from="1749204007113" duration="31403000" />
+      <workItem from="1749204007113" duration="34857000" />
     </task>
     <servers />
   </component>

@@ -85,6 +85,7 @@ public class OrdersController implements Initializable {
             List<Order> orders = DatabaseManager.getInstance().getUserOrders(username);
             ordersTable.setItems(FXCollections.observableArrayList(orders));
             ordersTable.refresh();
+            exportOrdersButton.setDisable(orders.isEmpty());
         } catch (SQLException e) {
             showAlert("Error", "Failed to load orders: " + e.getMessage(), Alert.AlertType.ERROR);
             e.printStackTrace();

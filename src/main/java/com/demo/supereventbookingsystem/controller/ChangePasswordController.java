@@ -13,9 +13,9 @@ import java.util.ResourceBundle;
 
 public class ChangePasswordController implements Initializable {
     @FXML
-    private PasswordField currentPasswordField;
+    PasswordField currentPasswordField;
     @FXML
-    private PasswordField newPasswordField;
+    PasswordField newPasswordField;
     @FXML
     private Button cancelButton;
     @FXML
@@ -23,7 +23,7 @@ public class ChangePasswordController implements Initializable {
 
     private MainController mainController;
     private User currentUser;
-    private DatabaseManager databaseManager;
+    DatabaseManager databaseManager;
 
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
@@ -41,7 +41,7 @@ public class ChangePasswordController implements Initializable {
         cancelButton.setOnAction(event -> handleCancel());
     }
 
-    private void handleChangePassword() {
+    void handleChangePassword() {
         String currentPassword = currentPasswordField.getText();
         String newPassword = newPasswordField.getText();
 

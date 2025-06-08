@@ -14,13 +14,13 @@ import java.sql.SQLException;
 
 public class CheckoutController {
     @FXML
-    private Label totalPriceLabel;
+    Label totalPriceLabel;
     @FXML
-    private TextField confirmationCodeField;
+    TextField confirmationCodeField;
     @FXML
-    private Label warningLabel;
+    Label warningLabel;
     @FXML
-    private Label titleLabel;
+    Label titleLabel;
 
     private Cart cart;
     private double totalPrice;
@@ -83,7 +83,7 @@ public class CheckoutController {
         stage.close();
     }
 
-    private boolean isValidConfirmationCode(String code) {
+    boolean isValidConfirmationCode(String code) {
         if (code == null || code.length() != 6) {
             return false;
         }
