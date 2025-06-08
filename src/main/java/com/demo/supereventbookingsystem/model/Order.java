@@ -2,6 +2,7 @@ package com.demo.supereventbookingsystem.model;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Order {
     private String orderNumber;
@@ -49,5 +50,12 @@ public class Order {
 
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    // New method to format bookings for TableView display
+    public String getBookingsSummary() {
+        return bookings.stream()
+                .map(booking -> booking.getEvent().getTitle() + " (" + booking.getQuantity() + ")")
+                .collect(Collectors.joining(", "));
     }
 }

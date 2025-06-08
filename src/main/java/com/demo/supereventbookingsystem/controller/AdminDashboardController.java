@@ -66,7 +66,7 @@ public class AdminDashboardController implements Initializable {
     public void setCurrentUser(User user) {
         this.currentUser = user;
         if (welcomeLabel != null) {
-            welcomeLabel.setText("Welcome " + (user != null ? user.getPreferredName() : "") + "!");
+            welcomeLabel.setText("Welcome Admin, " + (user != null ? user.getPreferredName() : "") + "!");
         }
     }
 
@@ -88,17 +88,17 @@ public class AdminDashboardController implements Initializable {
 
                 for (Event event : eventList) {
                     HBox eventBox = new HBox();
-                    eventBox.setUserData(event); // Store the Event in the HBox
+                    eventBox.setUserData(event);
                     Text eventText = new Text(event.getVenue() + " - " + event.getDay());
                     if (event.isDisabled()) {
-                        eventText.setStyle("-fx-fill: #868686;"); // Gray out disabled events
+                        eventText.setStyle("-fx-fill: #868686;");
                     }
 
                     CheckBox checkBox = new CheckBox();
-                    checkBox.setSelected(!event.isDisabled()); // Checked means enabled
+                    checkBox.setSelected(!event.isDisabled());
                     checkBox.setTooltip(new Tooltip("Click to enable or disable the event"));
                     checkBox.setOnAction(e -> {
-                        boolean newStatus = !checkBox.isSelected(); // Unchecked means disabled
+                        boolean newStatus = !checkBox.isSelected();
                         try {
                             DatabaseManager.getInstance().updateEventStatus(event.getEventId(), newStatus);
                             event.setDisabled(newStatus);
@@ -130,10 +130,10 @@ public class AdminDashboardController implements Initializable {
 
     private Event getSelectedEvent(TreeItem<HBox> item) {
         if (item != null && !item.isLeaf() && item.getValue() != null) {
-            return null; // Return null for parent nodes (titles)
+            return null;
         }
         if (item != null && item.getValue() != null && item.getValue().getUserData() instanceof Event) {
-            return (Event) item.getValue().getUserData(); // Retrieve the Event from the HBox
+            return (Event) item.getValue().getUserData();
         }
         return null;
     }
@@ -141,16 +141,11 @@ public class AdminDashboardController implements Initializable {
     @FXML
     private void handleEditEvent() {
         if (selectedEvent == null) return;
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/editevent.fxml"));
             Parent root = loader.load();
-            Object controller = loader.getController();
-            EditEventController editEventController;
-            if (controller instanceof EditEventController) {
-                editEventController = (EditEventController) controller;
-            } else {
-                throw new IllegalStateException("Loaded controller is not an instance of EditEventController: " + controller.getClass().getName());
-            }
+            EditEventController editEventController = loader.getController();
             editEventController.setMainController(mainController);
             editEventController.setCurrentUser(currentUser);
             editEventController.setSelectedEvent(selectedEvent);
@@ -161,22 +156,10 @@ public class AdminDashboardController implements Initializable {
             editEventStage.setScene(new Scene(root));
             editEventStage.setTitle("Edit Event");
             editEventStage.showAndWait();
-            // Repopulate TreeView after modal closes
             refreshEventTreeView();
         } catch (IOException e) {
             e.printStackTrace();
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setTitle("Error");
-            errorAlert.setHeaderText("Could not load Edit Event scene.");
-            errorAlert.setContentText("An error occurred: " + e.getMessage());
-            errorAlert.showAndWait();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setTitle("Controller Error");
-            errorAlert.setHeaderText("Incompatible controller loaded for Edit Event scene.");
-            errorAlert.setContentText("An error occurred: " + e.getMessage());
-            errorAlert.showAndWait();
+            showAlert("Error", "Could not load Edit Event scene: " + e.getMessage());
         }
     }
 
@@ -196,18 +179,14 @@ public class AdminDashboardController implements Initializable {
                 if (response == deleteButton) {
                     try {
                         DatabaseManager.getInstance().softDeleteEvent(selectedEvent.getEventId());
-                        populateEventTreeView(); // Repopulate to reflect the change
+                        populateEventTreeView();
                         selectedEvent = null;
                         editEventButton.setDisable(true);
                         deleteEventButton.setDisable(true);
                         selectedEventLabel.setText("None");
                     } catch (SQLException e) {
                         e.printStackTrace();
-                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                        errorAlert.setTitle("Deletion Failed");
-                        errorAlert.setHeaderText("Could not delete the event.");
-                        errorAlert.setContentText("An error occurred: " + e.getMessage());
-                        errorAlert.showAndWait();
+                        showAlert("Error", "Could not delete the event: " + e.getMessage());
                     }
                 }
             });
@@ -219,13 +198,7 @@ public class AdminDashboardController implements Initializable {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/addevent.fxml"));
             Parent root = loader.load();
-            Object controller = loader.getController();
-            AddEventController addEventController;
-            if (controller instanceof AddEventController) {
-                addEventController = (AddEventController) controller;
-            } else {
-                throw new IllegalStateException("Loaded controller is not an instance of AddEventController: " + controller.getClass().getName());
-            }
+            AddEventController addEventController = loader.getController();
             addEventController.setMainController(mainController);
             addEventController.setCurrentUser(currentUser);
 
@@ -235,33 +208,44 @@ public class AdminDashboardController implements Initializable {
             addEventStage.setScene(new Scene(root));
             addEventStage.setTitle("Add Event");
             addEventStage.showAndWait();
-            // Repopulate TreeView after modal closes
             refreshEventTreeView();
         } catch (IOException e) {
             e.printStackTrace();
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setTitle("Error");
-            errorAlert.setHeaderText("Could not load Add Event scene.");
-            errorAlert.setContentText("An error occurred: " + e.getMessage());
-            errorAlert.showAndWait();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setTitle("Controller Error");
-            errorAlert.setHeaderText("Incompatible controller loaded for Add Event scene.");
-            errorAlert.setContentText("An error occurred: " + e.getMessage());
-            errorAlert.showAndWait();
+            showAlert("Error", "Could not load Add Event scene: " + e.getMessage());
         }
     }
 
     @FXML
     private void handleViewUserOrders() {
-        // To be implemented later
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/userorders.fxml"));
+            Parent root = loader.load();
+            ViewUserOrderController controller = loader.getController();
+            controller.setMainController(mainController);
+
+            Stage userOrdersStage = new Stage();
+            userOrdersStage.initModality(Modality.WINDOW_MODAL);
+            userOrdersStage.initOwner(eventTreeView.getScene().getWindow());
+            userOrdersStage.setScene(new Scene(root));
+            userOrdersStage.setTitle("View User Orders");
+            userOrdersStage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not load User Orders scene: " + e.getMessage());
+        }
     }
 
     @FXML
     private void handleLogout() {
         mainController.setCurrentUser(null);
         mainController.showLogin();
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

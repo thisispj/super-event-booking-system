@@ -145,25 +145,28 @@ public class DatabaseManager {
     }
 
     public Event getEvent(int eventId) throws SQLException {
-        String sql = "SELECT * FROM events WHERE event_id = ? AND is_deleted = 0";
+        String sql = "SELECT event_id, title, venue, day, price, sold_tickets, total_tickets, is_disabled, is_deleted " +
+                "FROM events WHERE event_id = ? AND is_deleted = 0";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, eventId);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return new Event(
-                        rs.getInt("event_id"),
-                        rs.getString("title"),
-                        rs.getString("venue"),
-                        rs.getString("day"),
-                        rs.getDouble("price"),
-                        rs.getInt("sold_tickets"),
-                        rs.getInt("total_tickets"),
-                        rs.getInt("is_disabled") == 1,
-                        rs.getInt("is_deleted") == 1
-                );
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Event(
+                            rs.getInt("event_id"),
+                            rs.getString("title"),
+                            rs.getString("venue"),
+                            rs.getString("day"),
+                            rs.getDouble("price"),
+                            rs.getInt("sold_tickets"),
+                            rs.getInt("total_tickets"),
+                            rs.getBoolean("is_disabled"),
+                            rs.getBoolean("is_deleted")
+                    );
+                } else {
+                    throw new SQLException("Event with ID " + eventId + " not found or is deleted");
+                }
             }
         }
-        return null;
     }
 
     public void updateEventTickets(Event event, int additionalTickets) throws SQLException {
@@ -213,12 +216,14 @@ public class DatabaseManager {
 
     public void saveUser(User user) throws SQLException {
         String encryptedPassword = encryptPassword(user.getPassword());
-        String sql = "INSERT INTO users (username, password, preferred_name, user_type_id) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, password, preferred_name, user_type_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, user.getUsername());
             pstmt.setString(2, encryptedPassword);
             pstmt.setString(3, user.getPreferredName());
             pstmt.setInt(4, user.getUserTypeId());
+            pstmt.setString(4, user.getMemberSince().toString());
+            pstmt.setString(4, user.getMemberSince().toString());
             pstmt.executeUpdate();
         }
     }
@@ -496,4 +501,78 @@ public class DatabaseManager {
             throw new SQLException("Unexpected error while fetching event: " + e.getMessage(), e);
         }
     }
+
+    public List<Order> getOrdersByUsername(String username) throws SQLException {
+        List<Order> orders = new ArrayList<>();
+        String sql = "SELECT o.order_number, o.date_time, o.total_price, b.event_id, b.quantity " +
+                "FROM orders o " +
+                "JOIN bookings b ON o.order_number = b.order_number " +
+                "JOIN users u ON o.username = u.username " +
+                "WHERE u.username = ? AND u.user_type_id = 1";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                Map<String, Order> orderMap = new HashMap<>();
+                while (rs.next()) {
+                    String orderNumber = rs.getString("order_number");
+                    Order order = orderMap.getOrDefault(orderNumber, new Order(orderNumber, rs.getObject("date_time", LocalDateTime.class), new ArrayList<>(), 0.0));
+                    int eventId = rs.getInt("event_id");
+                    try {
+                        Event event = getEvent(eventId);
+                        order.getBookings().add(new Booking(event, rs.getInt("quantity")));
+                    } catch (SQLException e) {
+                        System.err.println("Skipping booking for order " + orderNumber + " due to missing event ID " + eventId + ": " + e.getMessage());
+                        continue; // Skip this booking if the event is not found
+                    }
+                    order.setTotalPrice(rs.getDouble("total_price")); // Update total if needed
+                    orderMap.put(orderNumber, order);
+                }
+                orders.addAll(orderMap.values());
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Failed to retrieve orders for " + username + ": " + e.getMessage(), e);
+        }
+        return orders;
+    }
+
+    public List<User> getAllUsers() throws SQLException {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT username, preferred_name, created_at, user_type_id FROM users";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                users.add(new User(
+                        rs.getString("username"),
+                        rs.getString("preferred_name"),
+                        rs.getTimestamp("created_at"),
+                        rs.getInt("user_type_id")
+                ));
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Failed to retrieve users: " + e.getMessage(), e);
+        }
+        return users;
+    }
+
+    public User getUserByUsername(String username) throws SQLException {
+        String sql = "SELECT username, preferred_name, created_at, user_type_id FROM users WHERE username = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new User(
+                            rs.getString("username"),
+                            rs.getString("preferred_name"),
+                            rs.getTimestamp("created_at"),
+                            rs.getInt("user_type_id")
+                    );
+                } else {
+                    return null;
+                }
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Failed to retrieve user " + username + ": " + e.getMessage(), e);
+        }
+    }
+
 }

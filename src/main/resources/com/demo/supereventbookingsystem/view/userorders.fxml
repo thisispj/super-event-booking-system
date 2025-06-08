@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="CENTER" prefHeight="830.0" prefWidth="830.0" spacing="10" style="-fx-background-color: #E1EBEE;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.demo.supereventbookingsystem.controller.ViewUserOrderController">
+    <padding>
+        <Insets bottom="20" left="20" right="20" top="20" />
+    </padding>
+    <Label fx:id="welcomeLabel" style="-fx-translate-y: 0;" text="User Orders" textFill="#011f5b">
+        <font>
+            <Font name="System Bold" size="36.0" />
+        </font>
+    </Label>
+    <Label text="View the complete order history of a user" />
+    <Separator prefWidth="200.0" />
+    <HBox alignment="CENTER_LEFT" prefHeight="37.0" prefWidth="1001.0" spacing="10.0">
+        <children>
+            <Label fx:id="availableEventsLabel" text="Search for a user:" textFill="#011f5b" />
+         <ComboBox fx:id="searchUserComboBox" editable="true" prefWidth="150.0" promptText="Search..." />
+        </children>
+      <padding>
+         <Insets bottom="10.0" left="20.0" right="10.0" top="10.0" />
+      </padding>
+    </HBox>
+    <Separator prefWidth="200.0" />
+   <TableView fx:id="ordersTable" prefHeight="495.0" prefWidth="793.0">
+      <columns>
+         <TableColumn fx:id="orderNumberColumn" prefWidth="150.0" text="Order Number" />
+         <TableColumn fx:id="dateTimeColumn" prefWidth="200.0" text="Timestamp" />
+         <TableColumn fx:id="eventsColumn" prefWidth="450.0" text="Events (Quantity)" />
+         <TableColumn fx:id="totalPriceColumn" prefWidth="150.0" text="Total Price ($)" />
+      </columns>
+   </TableView>
+    <VBox alignment="CENTER_LEFT" prefHeight="90.0" prefWidth="592.0" spacing="2.0" style="-fx-border-color: #B0C4DE; -fx-border-radius: 3;">
+        <children>
+            <Label fx:id="preferredNameLabel" text="Preferred Name:  NA" />
+         <Label fx:id="totalOrdersLabel" text="Total Orders: 0" />
+         <Label fx:id="totalMoneySpentLabel" text="Total Money Spent: $0.0" />
+         <Label fx:id="memberSinceLabel" text="Member Since: NA" />
+        </children>
+        <padding>
+            <Insets bottom="10.0" left="20.0" right="10.0" top="10.0" />
+        </padding>
+    </VBox>
+   <Separator prefWidth="200.0" />
+   <Button fx:id="closeButton" onAction="#handleClose" prefHeight="30.0" prefWidth="200.0" style="-fx-background-color: #1E90FF; -fx-font-weight: bold;" text="Close" textFill="WHITE">
+      <font>
+         <Font size="14.0" />
+      </font>
+   </Button>
+</VBox>
