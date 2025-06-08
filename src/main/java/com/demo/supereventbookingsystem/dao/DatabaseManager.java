@@ -8,6 +8,9 @@ import com.demo.supereventbookingsystem.model.Cart;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -52,12 +55,59 @@ public class DatabaseManager {
     }
 
     private void createTables() throws SQLException {
-        String createUsersTable = "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, preferred_name TEXT, user_type_id INTEGER DEFAULT 1, FOREIGN KEY (user_type_id) REFERENCES user_types(user_type_id))";
-        String createEventsTable = "CREATE TABLE IF NOT EXISTS events (event_id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, venue TEXT, day TEXT, price REAL, sold_tickets INTEGER, total_tickets INTEGER, is_disabled INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0)";
-        String createOrdersTable = "CREATE TABLE IF NOT EXISTS orders (order_number TEXT PRIMARY KEY, username TEXT, date_time TEXT, total_price REAL, FOREIGN KEY (username) REFERENCES users(username))";
-        String createBookingsTable = "CREATE TABLE IF NOT EXISTS bookings (order_number TEXT, event_title TEXT, event_venue TEXT, event_day TEXT, quantity INTEGER, FOREIGN KEY (order_number) REFERENCES orders(order_number))";
-        String createCartTable = "CREATE TABLE IF NOT EXISTS cart (username TEXT NOT NULL, event_id INTEGER NOT NULL, quantity INTEGER NOT NULL, total_price REAL NOT NULL, FOREIGN KEY (username) REFERENCES users(username), FOREIGN KEY (event_id) REFERENCES events(event_id))";
-        String createIndexSql = "CREATE INDEX IF NOT EXISTS idx_cart_event_id ON cart (event_id)";
+        String createUsersTable = "CREATE TABLE IF NOT EXISTS users (" +
+                "username TEXT PRIMARY KEY, " +
+                "password TEXT, " +
+                "preferred_name TEXT, " +
+                "user_type_id INTEGER, " +
+                "created_at TEXT DEFAULT (datetime('now')), " +
+                "updated_at TEXT DEFAULT (datetime('now')), " +
+                "FOREIGN KEY (user_type_id) REFERENCES user_types(user_type_id))";
+
+        String createUserTypesTable = "CREATE TABLE IF NOT EXISTS user_types (" +
+                "user_type_id INTEGER NOT NULL UNIQUE, " +
+                "user_type_name TEXT NOT NULL, " +
+                "PRIMARY KEY(user_type_id))";
+
+        String insertUserTypeNormal = "INSERT OR IGNORE INTO user_types (user_type_id, user_type_name) VALUES (1, 'NORMAL_USER')";
+        String insertUserTypeAdmin = "INSERT OR IGNORE INTO user_types (user_type_id, user_type_name) VALUES (2, 'ADMIN_USER')";
+
+        String createEventsTable = "CREATE TABLE IF NOT EXISTS events (" +
+                "event_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "title TEXT, " +
+                "venue TEXT, " +
+                "day TEXT, " +
+                "price REAL, " +
+                "sold_tickets INTEGER, " +
+                "total_tickets INTEGER, " +
+                "is_disabled INTEGER DEFAULT 0, " +
+                "is_deleted INTEGER DEFAULT 0)";
+
+        String createOrdersTable = "CREATE TABLE IF NOT EXISTS orders (" +
+                "order_number TEXT PRIMARY KEY, " +
+                "username TEXT, " +
+                "date_time TEXT, " +
+                "total_price REAL, " +
+                "FOREIGN KEY (username) REFERENCES users(username))";
+
+        String createBookingsTable = "CREATE TABLE IF NOT EXISTS bookings (" +
+                "booking_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "order_number TEXT, " +
+                "event_id INTEGER NOT NULL, " +
+                "quantity INTEGER, " +
+                "FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE RESTRICT ON UPDATE CASCADE)";
+
+        String createCartTable = "CREATE TABLE IF NOT EXISTS cart (" +
+                "username TEXT NOT NULL, " +
+                "event_id INTEGER NOT NULL, " +
+                "quantity INTEGER NOT NULL, " +
+                "total_price REAL NOT NULL, " +
+                "FOREIGN KEY (event_id) REFERENCES events(event_id), " +
+                "FOREIGN KEY (username) REFERENCES users(username))";
+
+        String createCartEventIdIndex = "CREATE INDEX IF NOT EXISTS idx_cart_event_id ON cart (event_id)";
+
+        String insertAdminUser = "INSERT OR IGNORE INTO users (username, password, preferred_name, user_type_id) VALUES ('admin', 'd006b3f546ac914c34dfc209ad535ea530f32a1e8e0ae822ea049b3a783e4d20', 'Admin', 2)";
 
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createUsersTable);
@@ -65,7 +115,11 @@ public class DatabaseManager {
             stmt.execute(createOrdersTable);
             stmt.execute(createBookingsTable);
             stmt.execute(createCartTable);
-            stmt.execute(createIndexSql);
+            stmt.execute(createCartEventIdIndex);
+            stmt.execute(createUserTypesTable);
+            stmt.execute(insertUserTypeNormal);
+            stmt.execute(insertUserTypeAdmin);
+            stmt.execute(insertAdminUser);
         }
     }
 
@@ -206,31 +260,51 @@ public class DatabaseManager {
     }
 
     public boolean validateUser(String username, String password) throws SQLException {
-        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+        String sql = "SELECT password FROM users WHERE username = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, username);
-            pstmt.setString(2, password);
-            return pstmt.executeQuery().next();
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                String storedHashedPassword = rs.getString("password");
+                String hashedInputPassword = encryptPassword(password);
+                return storedHashedPassword.equals(hashedInputPassword);
+            } else {
+                // User not found
+                return false;
+            }
         }
     }
 
     public void saveUser(User user) throws SQLException {
         String encryptedPassword = encryptPassword(user.getPassword());
-        String sql = "INSERT INTO users (username, password, preferred_name, user_type_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, password, preferred_name, user_type_id) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, user.getUsername());
             pstmt.setString(2, encryptedPassword);
             pstmt.setString(3, user.getPreferredName());
             pstmt.setInt(4, user.getUserTypeId());
-            pstmt.setString(4, user.getMemberSince().toString());
-            pstmt.setString(4, user.getMemberSince().toString());
             pstmt.executeUpdate();
         }
     }
 
     private String encryptPassword(String password) {
-        return password;
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            System.out.println("Encrypted password: " + hexString);
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing password", e);
+        }
     }
+
 
     public User getUser(String username) throws SQLException {
         String sql = "SELECT username, password, preferred_name, user_type_id FROM users WHERE username = ?";
@@ -262,22 +336,20 @@ public class DatabaseManager {
 
     public void saveOrder(Order order, String username) throws SQLException {
         String sqlOrder = "INSERT INTO orders (order_number, username, date_time, total_price) VALUES (?, ?, ?, ?)";
-        String sqlBooking = "INSERT INTO bookings (order_number, event_title, event_venue, event_day, quantity) VALUES (?, ?, ?, ?, ?)";
+        String sqlBooking = "INSERT INTO bookings (order_number, event_id, quantity) VALUES (?, ?, ?)";
 
         try (PreparedStatement pstmtOrder = connection.prepareStatement(sqlOrder);
              PreparedStatement pstmtBooking = connection.prepareStatement(sqlBooking)) {
             pstmtOrder.setString(1, order.getOrderNumber());
             pstmtOrder.setString(2, username);
-            pstmtOrder.setString(3, order.getDateTime().toString());
+            pstmtOrder.setObject(3, order.getDateTime()); // Use setObject for LocalDateTime
             pstmtOrder.setDouble(4, order.getTotalPrice());
             pstmtOrder.executeUpdate();
 
             for (Booking booking : order.getBookings()) {
                 pstmtBooking.setString(1, order.getOrderNumber());
-                pstmtBooking.setString(2, booking.getEvent().getTitle());
-                pstmtBooking.setString(3, booking.getEvent().getVenue());
-                pstmtBooking.setString(4, booking.getEvent().getDay());
-                pstmtBooking.setInt(5, booking.getQuantity());
+                pstmtBooking.setInt(2, booking.getEvent().getEventId()); // Use event_id instead of details
+                pstmtBooking.setInt(3, booking.getQuantity());
                 pstmtBooking.executeUpdate();
             }
         }
@@ -288,31 +360,34 @@ public class DatabaseManager {
         String sqlOrders = "SELECT order_number, date_time, total_price FROM orders WHERE username = ? ORDER BY date_time DESC";
         try (PreparedStatement pstmtOrders = connection.prepareStatement(sqlOrders)) {
             pstmtOrders.setString(1, username);
-            ResultSet rsOrders = pstmtOrders.executeQuery();
-            while (rsOrders.next()) {
-                String orderNumber = rsOrders.getString("order_number");
-                LocalDateTime dateTime = LocalDateTime.parse(rsOrders.getString("date_time"));
-                double totalPrice = rsOrders.getDouble("total_price");
+            try (ResultSet rsOrders = pstmtOrders.executeQuery()) {
+                while (rsOrders.next()) {
+                    String orderNumber = rsOrders.getString("order_number");
+                    LocalDateTime dateTime = LocalDateTime.parse(rsOrders.getString("date_time"));
+                    double totalPrice = rsOrders.getDouble("total_price");
 
-                List<Booking> bookings = new ArrayList<>();
-                String sqlBookings = "SELECT event_title, event_venue, event_day, quantity FROM bookings WHERE order_number = ?";
-                try (PreparedStatement pstmtBookings = connection.prepareStatement(sqlBookings)) {
-                    pstmtBookings.setString(1, orderNumber);
-                    ResultSet rsBookings = pstmtBookings.executeQuery();
-                    while (rsBookings.next()) {
-                        String eventTitle = rsBookings.getString("event_title");
-                        String eventVenue = rsBookings.getString("event_venue");
-                        String eventDay = rsBookings.getString("event_day");
-                        int quantity = rsBookings.getInt("quantity");
+                    List<Booking> bookings = new ArrayList<>();
+                    String sqlBookings = "SELECT event_id, quantity FROM bookings WHERE order_number = ?";
+                    try (PreparedStatement pstmtBookings = connection.prepareStatement(sqlBookings)) {
+                        pstmtBookings.setString(1, orderNumber);
+                        try (ResultSet rsBookings = pstmtBookings.executeQuery()) {
+                            while (rsBookings.next()) {
+                                int eventId = rsBookings.getInt("event_id");
+                                int quantity = rsBookings.getInt("quantity");
 
-                        Event event = new Event(0, eventTitle, eventVenue, eventDay, 0.0, 0, 0, false, false);
-                        Booking booking = new Booking(event, quantity);
-                        bookings.add(booking);
+                                // Fetch the Event object using event_id
+                                Event event = getEvent(eventId);
+                                if (event != null) {
+                                    Booking booking = new Booking(event, quantity);
+                                    bookings.add(booking);
+                                }
+                            }
+                        }
                     }
-                }
 
-                Order order = new Order(orderNumber, dateTime, bookings, totalPrice);
-                orders.add(order);
+                    Order order = new Order(orderNumber, dateTime, bookings, totalPrice);
+                    orders.add(order);
+                }
             }
         }
         return orders;
