@@ -13,15 +13,17 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Button;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.List;
@@ -56,6 +58,8 @@ public class DashboardController implements Initializable {
     private Button addToCartButton;
     @FXML
     private Button viewCartButton;
+    @FXML
+    private Button changePasswordButton;
 
     private MainController mainController;
     private User currentUser;
@@ -82,6 +86,8 @@ public class DashboardController implements Initializable {
         quantityField.textProperty().addListener((obs, oldValue, newValue) -> {
             addToCartButton.setDisable(newValue.isEmpty() || eventTable.getSelectionModel().getSelectedItem() == null);
         });
+
+        changePasswordButton.setOnAction(event -> handleChangePassword());
     }
 
     public void setMainController(MainController mainController) {
@@ -300,5 +306,34 @@ public class DashboardController implements Initializable {
                 pstmt.executeUpdate();
             }
         }
+    }
+
+    @FXML
+    private void handleChangePassword() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/demo/supereventbookingsystem/view/changepassword.fxml"));
+            Parent root = loader.load();
+            ChangePasswordController controller = loader.getController();
+            controller.setMainController(mainController);
+            controller.setCurrentUser(currentUser);
+
+            Stage changePasswordStage = new Stage();
+            changePasswordStage.initModality(Modality.WINDOW_MODAL);
+            changePasswordStage.initOwner(changePasswordButton.getScene().getWindow());
+            changePasswordStage.setScene(new Scene(root));
+            changePasswordStage.setTitle("Change Password");
+            changePasswordStage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not load Change Password scene: " + e.getMessage());
+        }
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

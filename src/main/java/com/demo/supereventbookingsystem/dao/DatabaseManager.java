@@ -288,7 +288,7 @@ public class DatabaseManager {
         }
     }
 
-    private String encryptPassword(String password) {
+    public String encryptPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));
@@ -630,7 +630,7 @@ public class DatabaseManager {
     }
 
     public User getUserByUsername(String username) throws SQLException {
-        String sql = "SELECT username, preferred_name, created_at, user_type_id FROM users WHERE username = ?";
+        String sql = "SELECT username, preferred_name, created_at, user_type_id, password FROM users WHERE username = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, username);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -647,6 +647,37 @@ public class DatabaseManager {
             }
         } catch (SQLException e) {
             throw new SQLException("Failed to retrieve user " + username + ": " + e.getMessage(), e);
+        }
+    }
+
+    public void updatePassword(String username, String encryptedPassword) throws SQLException {
+        String sql = "UPDATE users SET password = ? WHERE username = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, encryptedPassword);
+            pstmt.setString(2, username);
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("No user found with username " + username);
+            }
+        }
+    }
+
+    public User getUserPassword(String username) throws SQLException {
+        String sql = "SELECT username, password, preferred_name, user_type_id FROM users WHERE username = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new User(
+                            rs.getString("username"),
+                            rs.getString("password"), // Encrypted password from the database
+                            rs.getString("preferred_name"),
+                            rs.getInt("user_type_id")
+                    );
+                } else {
+                    return null; // User not found
+                }
+            }
         }
     }
 

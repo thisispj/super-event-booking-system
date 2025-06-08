@@ -34,6 +34,7 @@ public class MainController {
             primaryStage.setTitle("Super Event Booking - Login");
             primaryStage.show();
             primaryStage.centerOnScreen();
+            primaryStage.toFront();
         } catch (IOException e) {
             e.printStackTrace();
         }

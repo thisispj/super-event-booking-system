@@ -66,7 +66,7 @@ public class AdminDashboardController implements Initializable {
     public void setCurrentUser(User user) {
         this.currentUser = user;
         if (welcomeLabel != null) {
-            welcomeLabel.setText("Welcome Admin, " + (user != null ? user.getPreferredName() : "") + "!");
+            welcomeLabel.setText("Welcome " + (user != null ? user.getPreferredName() : "") + "!");
         }
     }
 
@@ -168,8 +168,8 @@ public class AdminDashboardController implements Initializable {
         if (selectedEvent != null) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Confirm Delete");
-            alert.setHeaderText("Are you sure you want to delete the Event: {" + selectedEvent.getEventId() + ": " + selectedEvent.getTitle() + " at " + selectedEvent.getVenue() + " on " + selectedEvent.getDay() + "}");
-            alert.setContentText("This will soft delete the event. Click 'Delete' to proceed or 'Cancel' to abort.");
+            alert.setHeaderText("Are you sure you want to delete the event?");
+            alert.setContentText("This will delete the event: " + selectedEvent.getEventId() + ": " + selectedEvent.getTitle() + " | " + selectedEvent.getVenue() + " - " + selectedEvent.getDay());
 
             ButtonType deleteButton = new ButtonType("Delete");
             ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
